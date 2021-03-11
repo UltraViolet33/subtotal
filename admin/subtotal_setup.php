@@ -300,8 +300,29 @@ function showParameters() {
 
 	print '</table>';
 
-?>
-	<?php
+
+    if ($conf->shippableorder->enabled) {
+    print '<br />';
+
+    print '<table width="100%" class="noborder" style="background-color: #fff;">';
+    print '    <tr class="liste_titre">';
+    print '        <td colspan="2">'.$langs->trans("addLineTitle_in_order_shippable_TITLE").'</td>';
+    print '    </tr>';
+    print '    <tr>';
+    print '        <td>'.$langs->trans("addLineTitle_in_order_shippable").'</td>';
+
+    print '        <td style="text-align: right;">';
+    print '            <form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+    print '                <input type="hidden" name="token" value="'.$_SESSION['newtoken']'.">';
+    print '                <input type="hidden" name="action" value="set_SUBTOTAL_SHIPPABLE_ORDER" />';
+    echo $html->selectyesno("SUBTOTAL_SHIPPABLE_ORDER",$conf->global->SUBTOTAL_SHIPPABLE_ORDER,1);
+	print '					<input type="submit" class="button" value="'.$langs->trans("Modify")'.">';
+	print '				</form>';
+	print '			</td>';
+	print '		</tr>';
+	}
+	print '</table>';
+	
 }
 
 dol_fiche_end(-1);
@@ -319,3 +340,4 @@ dol_fiche_end(-1);
 // End of page
 llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
 $db->close();
+?>

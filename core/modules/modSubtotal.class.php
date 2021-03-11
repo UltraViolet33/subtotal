@@ -43,7 +43,7 @@ class modSubtotal extends DolibarrModules
 
         $this->db = $db;
 
-        $this->editor_name = 'InfraS';
+        $this->editor_name = '<b>InfraS - sylvain Legrand</b>';
         $this->editor_url = 'https://www.infras.fr';
         // Id for module (must be unique).
         // Use a free id here
@@ -54,7 +54,7 @@ class modSubtotal extends DolibarrModules
 
         // Family can be 'crm','financial','hr','projects','products','ecm','technic','other'
         // It is used to group modules in module setup page
-        $this->family = "technic";
+        $this->family = "Modules InfraS";
         // Module label (no space allowed)
         // used if translation string 'ModuleXXXName' not found
         // (where XXX is value of numeric property 'numero' of module)
@@ -64,7 +64,7 @@ class modSubtotal extends DolibarrModules
         // (where XXX is value of numeric property 'numero' of module)
         $this->description = "Module permettant l'ajout de sous-totaux et sous-totaux intermédiaires et le déplacement d'une ligne aisée de l'un dans l'autre";
         // Possible values for version are: 'development', 'experimental' or version
-        $this->version = '3.4.5c - InfraS';
+        $this->version = '3.6.0 - InfraS';
         // Key used in llx_const table to save module status enabled/disabled
         // (where MYMODULE is value of property name of module in uppercase)
         $this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
@@ -116,6 +116,7 @@ class modSubtotal extends DolibarrModules
 				,'deliverycard'
 				,'paiementcard'
 				,'referencelettersinstacecard'
+                ,'shippableorderlist'
 				,'propallist'
 				,'orderlist'
 				,'invoicelist'

@@ -667,7 +667,19 @@ class ActionsSubtotal
 			$Tab = TSubtotal::getLinesFromTitleId($object, GETPOST('lineid', 'int'), true);
 			foreach($Tab as $line) {
                 $result = 0;
-
+				// InfraS add begin
+				if ($conf->global->MAIN_MODULE_INFRASPACKPLUS)	dol_include_once('/infraspackplus/core/lib/infraspackplus.lib.php');
+				$isOuvrage	= $conf->global->MAIN_MODULE_INFRASPACKPLUS ? infraspackplus_isSubTotalLine($line, $object->element, 'modouvrage') : '';
+				if (!empty($isOuvrage))
+				{
+					// Call trigger
+					include_once DOL_DOCUMENT_ROOT.'/core/class/interfaces.class.php';
+					$interface			= new Interfaces($db);
+					$result				= $interface->run_triggers('OUVRAGE_DELETE', $line, $user, $langs, $conf);
+					if ($result < 0)	$error++;
+					// End call triggers
+				}	// if (!empty($isOuvrage))
+					// InfraS add end
 				$idLine = $line->id;
 				/**
 				 * @var $object Facture
@@ -678,7 +690,7 @@ class ActionsSubtotal
 				 */
 				else if($object->element=='invoice_supplier')
 				{
-                    $result = $object->deleteline($idLine);
+					$result = $object->deleteline($idLine);
 				}
 				/**
 				 * @var $object Propal
@@ -701,7 +713,7 @@ class ActionsSubtotal
 				 */
 				else if($object->element=='order_supplier')
 				{
-                    $result = $object->deleteline($idLine);
+					$result = $object->deleteline($idLine);
 				}
 				/**
 				 * @var $object Facturerec
@@ -776,6 +788,8 @@ class ActionsSubtotal
 	function getTotalLineFromObject(&$object, &$line, $use_level=false, $return_all=0) {
 		global $conf;
 
+		if ($conf->global->MAIN_MODULE_INFRASPACKPLUS)	dol_include_once('/infraspackplus/core/lib/infraspackplus.lib.php');	// InfraS add
+
 		$rang = $line->rang;
 		$qty_line = $line->qty;
 		$lvl = 0;
@@ -802,11 +816,12 @@ class ActionsSubtotal
 		{
 			$l->total_ttc = doubleval($l->total_ttc);
 			$l->total_ht = doubleval($l->total_ht);
+			$isOuvrage	= $conf->global->MAIN_MODULE_INFRASPACKPLUS ? infraspackplus_isSubTotalLine($l, $object->element, 'modouvrage') : '';	// InfraS add
 
 			//print $l->rang.'>='.$rang.' '.$total.'<br/>';
             if ($l->rang>=$rang) continue;
             if (!empty($title_break) && $title_break->id == $l->id) break;
-            elseif (!TSubtotal::isModSubtotalLine($l))
+            elseif (!TSubtotal::isModSubtotalLine($l) && empty($isOuvrage))	// InfraS change
             {
                 // TODO retirer le test avec $builddoc quand Dolibarr affichera le total progression sur la card et pas seulement dans le PDF
                 if ($builddoc && $object->element == 'facture' && $object->type==Facture::TYPE_SITUATION)
@@ -855,7 +870,7 @@ class ActionsSubtotal
 	 * @param $h            float               height
 	 */
 	function pdf_add_total(&$pdf,&$object, &$line, $label, $description,$posx, $posy, $w, $h) {
-		global $conf,$subtotal_last_title_posy;
+		global $conf,$subtotal_last_title_posy,$langs;
 
 		$hideInnerLines = GETPOST('hideInnerLines', 'int');
 		if (!empty($conf->global->SUBTOTAL_ONE_LINE_IF_HIDE_INNERLINES) && $hideInnerLines && !empty($subtotal_last_title_posy))
@@ -904,8 +919,25 @@ class ActionsSubtotal
 
 		//Print background
 		$cell_height = $pdf->getStringHeight($w, $label);
-		$pdf->SetXY($posx, $posy);
-		$pdf->MultiCell($pdf->page_largeur - $pdf->marge_droite, $cell_height, '', 0, '', 1);
+		if(!empty($object->subtotalPdfModelInfo->cols)){
+			include_once __DIR__ . '/staticPdf.model.php';
+			$staticPdfModel = new ModelePDFStatic($object->db);
+			$staticPdfModel->marge_droite 	= $object->subtotalPdfModelInfo->marge_droite;
+			$staticPdfModel->marge_gauche 	= $object->subtotalPdfModelInfo->marge_gauche;
+			$staticPdfModel->page_largeur 	= $object->subtotalPdfModelInfo->page_largeur;
+			$staticPdfModel->page_hauteur 	= $object->subtotalPdfModelInfo->page_hauteur;
+			$staticPdfModel->cols 			= $object->subtotalPdfModelInfo->cols;
+			$staticPdfModel->defaultTitlesFieldsStyle 	= $object->subtotalPdfModelInfo->defaultTitlesFieldsStyle;
+			$staticPdfModel->defaultContentsFieldsStyle = $object->subtotalPdfModelInfo->defaultContentsFieldsStyle;
+			$staticPdfModel->prepareArrayColumnField($object, $langs);
+
+			$pdf->SetXY($object->subtotalPdfModelInfo->marge_droite, $posy);
+			$pdf->MultiCell($object->subtotalPdfModelInfo->page_largeur - $object->subtotalPdfModelInfo->marge_gauche - $object->subtotalPdfModelInfo->marge_droite, $cell_height, '', 0, '', 1);
+		}
+		else{
+			$pdf->SetXY($posx, $posy);
+			$pdf->MultiCell($pdf->page_largeur - $pdf->marge_droite, $cell_height, '', 0, '', 1);
+		}
 
 		if (!$hidePriceOnSubtotalLines) {
 			$total_to_print = price($line->total);
@@ -923,8 +955,13 @@ class ActionsSubtotal
 				$line->total_ttc = $TInfo[2];
 			}
 			if($set_pagebreak_margin) $pdf->SetAutoPageBreak( $pageBreakOriginalValue , $bMargin);
-			$pdf->MultiCell($pdf->totalht_larg, $pdf->heightline, $total_to_print, '', 'R', 0, 1, $pdf->totalht_posx, $posy, true, 0, 0, false, 0, 'M', false);	// InfraS add
-			if ($pdf->show_ttc_col)	$pdf->MultiCell($pdf->totalttc_larg, $pdf->heightline, $totalTTC_line, '', 'R', 0, 1, $pdf->totalttc_posx, $posy, true, 0, 0, false, 0, 'M', false);	// InfraS add
+			if(!empty($object->subtotalPdfModelInfo->cols)){
+				$staticPdfModel->printStdColumnContent($pdf, $posy, 'totalexcltax', $total_to_print);
+			}
+			else{
+				$pdf->MultiCell($pdf->totalht_larg, $pdf->heightline, $total_to_print, '', 'R', 0, 1, $pdf->totalht_posx, $posy, true, 0, 0, false, 0, 'M', false);	// InfraS add
+				if ($pdf->show_ttc_col)	$pdf->MultiCell($pdf->totalttc_larg, $pdf->heightline, $totalTTC_line, '', 'R', 0, 1, $pdf->totalttc_posx, $posy, true, 0, 0, false, 0, 'M', false);	// InfraS add
+			}
 		}
 		else{
 			if($set_pagebreak_margin) $pdf->SetAutoPageBreak( $pageBreakOriginalValue , $bMargin);
@@ -1467,177 +1504,184 @@ class ActionsSubtotal
 		 */
 		global $pdf,$conf, $langs;
 
-		// var_dump($object->lines);
-		dol_include_once('/subtotal/class/subtotal.class.php');
+		$TContext	= explode(':', $parameters['context']);	// InfraS add
+		if (in_array('propalcard', $TContext) || in_array('ordercard', $TContext) || in_array('invoicecard', $TContext)) {	// InfraS add
 
-		foreach($parameters as $key=>$value) {
-			${$key} = $value;
-		}
+			$object->subtotalPdfModelInfo = new stdClass(); // see defineColumnFiel method in this class
+			$object->subtotalPdfModelInfo->cols = false;
 
-		$this->setDocTVA($pdf, $object);
+			// var_dump($object->lines);
+			dol_include_once('/subtotal/class/subtotal.class.php');
 
-		$this->add_numerotation($object);
-
-        foreach($object->lines as $k => &$l) {
-            if(TSubtotal::isSubtotal($l)) {
-                $parentTitle = TSubtotal::getParentTitleOfLine($object, $l->rang);
-                if(is_object($parentTitle) && empty($parentTitle->array_options)) $parentTitle->fetch_optionals();
-                if(! empty($parentTitle->id) && ! empty($parentTitle->array_options['options_show_reduc'])) {
-                    $l->remise_percent = 100;    // Affichage de la réduction sur la ligne de sous-total
-                }
-            }
-
-
-            // Pas de hook sur les colonnes du PDF expédition, on unset les bonnes variables
-            if(($object->element == 'shipping' || $object->element == 'delivery') && $this->isModSubtotalLine($k, $object))
-			{
-				$l->qty = $l->qty_asked;
-				unset($l->qty_asked, $l->qty_shipped, $l->volume, $l->weight);
+			$i = $parameters['i'];
+			foreach($parameters as $key=>$value) {
+				${$key} = $value;
 			}
-        }
 
-		$hideInnerLines = GETPOST('hideInnerLines', 'int');
-		$hidedetails = GETPOST('hidedetails', 'int');
+			$this->setDocTVA($pdf, $object);
 
-		if ($hideInnerLines) { // si c une ligne de titre
-	    	$fk_parent_line=0;
-			$TLines =array();
+			$this->add_numerotation($object);
 
-			$original_count=count($object->lines);
-		    $TTvas = array(); // tableau de tva
-
-			foreach($object->lines as $k=>&$line)
-			{
-
-				if($line->product_type==9 && $line->rowid>0)
-				{
-					$fk_parent_line = $line->rowid;
-
-					// Fix tk7201 - si on cache le détail, la TVA est renseigné au niveau du sous-total, l'erreur c'est s'il y a plusieurs sous-totaux pour les même lignes, ça va faire la somme
-					if(TSubtotal::isSubtotal($line))
-					{
-						/*$total = $this->getTotalLineFromObject($object, $line, '');
-
-						$line->total_ht = $total;
-						$line->total = $total;
-						*/
-						//list($total, $total_tva, $total_ttc, $TTotal_tva) = $this->getTotalLineFromObject($object, $line, '', 1);
-
-						$TInfo = $this->getTotalLineFromObject($object, $line, '', 1);
-
-						if (TSubtotal::getNiveau($line) == 1) $line->TTotal_tva = $TInfo[3];
-						$line->total_ht = $TInfo[0];
-						$line->total_tva = $TInfo[1];
-						$line->total = $line->total_ht;
-						$line->total_ttc = $TInfo[2];
-
-//                        $TTitle = TSubtotal::getParentTitleOfLine($object, $line->rang);
-//                        $parentTitle = array_shift($TTitle);
-//                        if(! empty($parentTitle->id) && ! empty($parentTitle->array_option['options_show_total_ht'])) {
-//                            exit('la?');
-//                            $line->remise_percent = 100;    // Affichage de la réduction sur la ligne de sous-total
-//                            $line->update();
-//                        }
+			foreach($object->lines as $k => &$l) {
+				if(TSubtotal::isSubtotal($l)) {
+					$parentTitle = TSubtotal::getParentTitleOfLine($object, $l->rang);
+					if(is_object($parentTitle) && empty($parentTitle->array_options)) $parentTitle->fetch_optionals();
+					if(! empty($parentTitle->id) && ! empty($parentTitle->array_options['options_show_reduc'])) {
+						$l->remise_percent = 100;    // Affichage de la réduction sur la ligne de sous-total
 					}
-//                    if(TSub)
-
 				}
 
-				if ($hideInnerLines)
+
+				// Pas de hook sur les colonnes du PDF expédition, on unset les bonnes variables
+				if(($object->element == 'shipping' || $object->element == 'delivery') && $this->isModSubtotalLine($k, $object))
 				{
-				    if(!empty($conf->global->SUBTOTAL_REPLACE_WITH_VAT_IF_HIDE_INNERLINES))
-				    {
-				        if($line->tva_tx != '0.000' && $line->product_type!=9){
-
-    				        // on remplit le tableau de tva pour substituer les lignes cachées
-    				        $TTvas[$line->tva_tx]['total_tva'] += $line->total_tva;
-    				        $TTvas[$line->tva_tx]['total_ht'] += $line->total_ht;
-    				        $TTvas[$line->tva_tx]['total_ttc'] += $line->total_ttc;
-    				    }
-    					if($line->product_type==9 && $line->rowid>0)
-    					{
-    					    //Cas où je doit cacher les produits et afficher uniquement les sous-totaux avec les titres
-    					    // génère des lignes d'affichage des montants HT soumis à tva
-    					    $nbtva = count($TTvas);
-    					    if(!empty($nbtva)){
-    					        foreach ($TTvas as $tx =>$val){
-    					            $l = clone $line;
-    					            $l->product_type = 1;
-    					            $l->special_code = '';
-    					            $l->qty = 1;
-    					            $l->desc = $langs->trans('AmountBeforeTaxesSubjectToVATX%', $langs->transnoentitiesnoconv('VAT'), price($tx));
-    					            $l->tva_tx = $tx;
-    					            $l->total_ht = $val['total_ht'];
-    					            $l->total_tva = $val['total_tva'];
-    					            $l->total = $line->total_ht;
-    					            $l->total_ttc = $val['total_ttc'];
-    					            $TLines[] = $l;
-    					            array_shift($TTvas);
-    					       }
-    					    }
-
-    					    // ajoute la ligne de sous-total
-    					    $TLines[] = $line;
-    					}
-				    } else {
-
-				        if($line->product_type==9 && $line->rowid>0)
-				        {
-				            // ajoute la ligne de sous-total
-				            $TLines[] = $line;
-				        }
-				    }
-
-
+					$l->qty = $l->qty_asked;
+					unset($l->qty_asked, $l->qty_shipped, $l->volume, $l->weight);
 				}
-				elseif ($hidedetails)
+			}
+
+			$hideInnerLines = GETPOST('hideInnerLines', 'int');
+			$hidedetails = GETPOST('hidedetails', 'int');
+
+			if ($hideInnerLines) { // si c une ligne de titre
+				$fk_parent_line=0;
+				$TLines =array();
+
+				$original_count=count($object->lines);
+				$TTvas = array(); // tableau de tva
+
+				foreach($object->lines as $k=>&$line)
 				{
-					$TLines[] = $line; //Cas où je cache uniquement les prix des produits
+
+					if($line->product_type==9 && $line->rowid>0)
+					{
+						$fk_parent_line = $line->rowid;
+
+						// Fix tk7201 - si on cache le détail, la TVA est renseigné au niveau du sous-total, l'erreur c'est s'il y a plusieurs sous-totaux pour les même lignes, ça va faire la somme
+						if(TSubtotal::isSubtotal($line))
+						{
+							/*$total = $this->getTotalLineFromObject($object, $line, '');
+
+							$line->total_ht = $total;
+							$line->total = $total;
+							*/
+							//list($total, $total_tva, $total_ttc, $TTotal_tva) = $this->getTotalLineFromObject($object, $line, '', 1);
+
+							$TInfo = $this->getTotalLineFromObject($object, $line, '', 1);
+
+							if (TSubtotal::getNiveau($line) == 1) $line->TTotal_tva = $TInfo[3];
+							$line->total_ht = $TInfo[0];
+							$line->total_tva = $TInfo[1];
+							$line->total = $line->total_ht;
+							$line->total_ttc = $TInfo[2];
+
+	//                        $TTitle = TSubtotal::getParentTitleOfLine($object, $line->rang);
+	//                        $parentTitle = array_shift($TTitle);
+	//                        if(! empty($parentTitle->id) && ! empty($parentTitle->array_option['options_show_total_ht'])) {
+	//                            exit('la?');
+	//                            $line->remise_percent = 100;    // Affichage de la réduction sur la ligne de sous-total
+	//                            $line->update();
+	//                        }
+						}
+	//                    if(TSub)
+
+					}
+
+					if ($hideInnerLines)
+					{
+						if(!empty($conf->global->SUBTOTAL_REPLACE_WITH_VAT_IF_HIDE_INNERLINES))
+						{
+							if($line->tva_tx != '0.000' && $line->product_type!=9){
+
+								// on remplit le tableau de tva pour substituer les lignes cachées
+								$TTvas[$line->tva_tx]['total_tva'] += $line->total_tva;
+								$TTvas[$line->tva_tx]['total_ht'] += $line->total_ht;
+								$TTvas[$line->tva_tx]['total_ttc'] += $line->total_ttc;
+							}
+							if($line->product_type==9 && $line->rowid>0)
+							{
+								//Cas où je doit cacher les produits et afficher uniquement les sous-totaux avec les titres
+								// génère des lignes d'affichage des montants HT soumis à tva
+								$nbtva = count($TTvas);
+								if(!empty($nbtva)){
+									foreach ($TTvas as $tx =>$val){
+										$l = clone $line;
+										$l->product_type = 1;
+										$l->special_code = '';
+										$l->qty = 1;
+										$l->desc = $langs->trans('AmountBeforeTaxesSubjectToVATX%', $langs->transnoentitiesnoconv('VAT'), price($tx));
+										$l->tva_tx = $tx;
+										$l->total_ht = $val['total_ht'];
+										$l->total_tva = $val['total_tva'];
+										$l->total = $line->total_ht;
+										$l->total_ttc = $val['total_ttc'];
+										$TLines[] = $l;
+										array_shift($TTvas);
+								   }
+								}
+
+								// ajoute la ligne de sous-total
+								$TLines[] = $line;
+							}
+						} else {
+
+							if($line->product_type==9 && $line->rowid>0)
+							{
+								// ajoute la ligne de sous-total
+								$TLines[] = $line;
+							}
+						}
+
+
+					}
+					elseif ($hidedetails)
+					{
+						$TLines[] = $line; //Cas où je cache uniquement les prix des produits
+					}
+
+					if ($line->product_type != 9) { // jusqu'au prochain titre ou total
+						//$line->fk_parent_line = $fk_parent_line;
+
+					}
+
+					/*if($hideTotal) {
+						$line->total = 0;
+						$line->subprice= 0;
+					}*/
+
 				}
 
-				if ($line->product_type != 9) { // jusqu'au prochain titre ou total
-					//$line->fk_parent_line = $fk_parent_line;
-
+				// cas incongru où il y aurait des produits en dessous du dernier sous-total
+				$nbtva = count($TTvas);
+				if(!empty($nbtva) && $hideInnerLines && !empty($conf->global->SUBTOTAL_REPLACE_WITH_VAT_IF_HIDE_INNERLINES))
+				{
+					foreach ($TTvas as $tx =>$val){
+						$l = clone $line;
+						$l->product_type = 1;
+						$l->special_code = '';
+						$l->qty = 1;
+						$l->desc = $langs->trans('AmountBeforeTaxesSubjectToVATX%', $langs->transnoentitiesnoconv('VAT'), price($tx));
+						$l->tva_tx = $tx;
+						$l->total_ht = $val['total_ht'];
+						$l->total_tva = $val['total_tva'];
+						$l->total = $line->total_ht;
+						$l->total_ttc = $val['total_ttc'];
+						$TLines[] = $l;
+						array_shift($TTvas);
+					}
 				}
 
-				/*if($hideTotal) {
-					$line->total = 0;
-					$line->subprice= 0;
-				}*/
+				global $nblignes;
+				$nblignes=count($TLines);
 
+				$object->lines = $TLines;
+
+				if($i>count($object->lines)) {
+					$this->resprints = '';
+					return 0;
+				}
 			}
-
-			// cas incongru où il y aurait des produits en dessous du dernier sous-total
-			$nbtva = count($TTvas);
-			if(!empty($nbtva) && $hideInnerLines && !empty($conf->global->SUBTOTAL_REPLACE_WITH_VAT_IF_HIDE_INNERLINES))
-			{
-			    foreach ($TTvas as $tx =>$val){
-			        $l = clone $line;
-			        $l->product_type = 1;
-			        $l->special_code = '';
-			        $l->qty = 1;
-			        $l->desc = $langs->trans('AmountBeforeTaxesSubjectToVATX%', $langs->transnoentitiesnoconv('VAT'), price($tx));
-			        $l->tva_tx = $tx;
-			        $l->total_ht = $val['total_ht'];
-			        $l->total_tva = $val['total_tva'];
-			        $l->total = $line->total_ht;
-			        $l->total_ttc = $val['total_ttc'];
-			        $TLines[] = $l;
-			        array_shift($TTvas);
-			    }
-			}
-
-			global $nblignes;
-			$nblignes=count($TLines);
-
-			$object->lines = $TLines;
-
-			if($i>count($object->lines)) {
-				$this->resprints = '';
-				return 0;
-			}
-	    }
-
+		}	// InfraS add
 		return 0;
 	}
 
@@ -1651,6 +1695,13 @@ class ActionsSubtotal
 		foreach($parameters as $key=>$value) {
 			${$key} = $value;
 		}
+
+		// même si le foreach du dessu fait ce qu'il faut, l'IDE n'aime pas
+		$outputlangs = $parameters['outputlangs'];
+		$i = $parameters['i'];
+		$posx = $parameters['posx'];
+		$h = $parameters['h'];
+		$w = $parameters['w'];
 
 		$hideInnerLines = GETPOST('hideInnerLines', 'int');
 		$hidedetails = GETPOST('hidedetails', 'int');
@@ -2193,7 +2244,7 @@ class ActionsSubtotal
 
 						if ($object->statut == 0  && $createRight && !empty($conf->global->SUBTOTAL_ALLOW_EDIT_BLOCK))
 						{
-							echo '<a href="'.$_SERVER['PHP_SELF'].'?'.$idvar.'='.$object->id.'&action=editline&lineid='.$line->id.'">'.img_edit().'</a>';
+							echo '<a href="'.$_SERVER['PHP_SELF'].'?'.$idvar.'='.$object->id.'&action=editline&lineid='.$line->id.'#row-'.$line->id.'">'.img_edit().'</a>';
 						}
 					}
 
@@ -2575,7 +2626,7 @@ class ActionsSubtotal
 
 		$contexts = explode(':',$parameters['context']);
 
-		if (in_array('ordercard',$contexts) || in_array('invoicecard',$contexts))	// InfraS change
+		if (in_array('ordercard',$contexts) || in_array('invoicecard',$contexts))
 		{
 			/** @var Commande $object */
 
@@ -2657,15 +2708,16 @@ class ActionsSubtotal
 
 
 
+			// InfraS change begin
+					$object->printOriginLine($line, '', $restrictlist, '/core/tpl', $selectedLines);
+
+					unset($object->tpl["sublabel"]);
+					unset($object->tpl['sub-td-style']);
+					unset($object->tpl['sub-tr-style']);
+					unset($object->tpl['sub-type']);
+					unset($object->tpl['subtotal']);
 			}
-
-			$object->printOriginLine($line, '', $restrictlist, '/core/tpl', $selectedLines);
-
-			unset($object->tpl["sublabel"]);
-			unset($object->tpl['sub-td-style']);
-			unset($object->tpl['sub-tr-style']);
-			unset($object->tpl['sub-type']);
-			unset($object->tpl['subtotal']);
+			// InfraS change end
 		}
 
 		return 0;
@@ -2948,4 +3000,56 @@ class ActionsSubtotal
 
 	}
 
+/**
+     * @param $parameters
+     * @param $object
+     * @param $action
+     * @param $hookmanager
+     */
+	function handleExpeditionTitleAndTotal($parameters, &$object, &$action, $hookmanager){
+        global $conf;
+        //var_dump($parameters['line']);
+	    dol_include_once('subtotal/class/subtotal.class.php');
+        $currentcontext = explode(':', $parameters['context']);
+
+	    if ( in_array('shippableorderlist',$currentcontext)) {
+
+            //var_dump($parameters['line']);
+            if(TSubtotal::isModSubtotalLine($parameters['line'])) {
+
+                $confOld = $conf->global->STOCK_MUST_BE_ENOUGH_FOR_SHIPMENT;
+                $conf->global->STOCK_MUST_BE_ENOUGH_FOR_SHIPMENT = 0;
+                $res =  $parameters['shipping']->addline($parameters['TEnt_comm'][$object->order->id], $parameters['line']->id, $parameters['line']->qty);
+                $conf->global->STOCK_MUST_BE_ENOUGH_FOR_SHIPMENT = $confOld;
+            }
+
+        }
+
+    }
+
+	/**
+	 * Overloading the defineColumnField function
+	 *
+	 * @param   array()         $parameters     Hook metadatas (context, etc...)
+	 * @param   CommonDocGenerator object      $pdfDoc         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string          $action         Current action (if set). Generally create or edit or null
+	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	public function defineColumnField($parameters, &$pdfDoc, &$action, $hookmanager)
+	{
+
+		// If this model is column field compatible it will add info to change subtotal behavior
+		$parameters['object']->subtotalPdfModelInfo->cols = $pdfDoc->cols;
+
+		// HACK Pour passer les paramettres du model dans les hooks sans infos
+		$parameters['object']->subtotalPdfModelInfo->marge_droite 	= $pdfDoc->marge_droite;
+		$parameters['object']->subtotalPdfModelInfo->marge_gauche 	= $pdfDoc->marge_gauche;
+		$parameters['object']->subtotalPdfModelInfo->page_largeur 	= $pdfDoc->page_largeur;
+		$parameters['object']->subtotalPdfModelInfo->page_hauteur 	= $pdfDoc->page_hauteur;
+		$parameters['object']->subtotalPdfModelInfo->format 		= $pdfDoc->format;
+		$parameters['object']->subtotalPdfModelInfo->defaultTitlesFieldsStyle = $pdfDoc->subtotalPdfModelInfo->defaultTitlesFieldsStyle;
+		$parameters['object']->subtotalPdfModelInfo->defaultContentsFieldsStyle = $pdfDoc->subtotalPdfModelInfo->defaultContentsFieldsStyle;
+
+	}
 }

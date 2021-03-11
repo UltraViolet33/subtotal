@@ -348,13 +348,14 @@ function _updateLineNC($element, $elementid, $lineid, $subtotal_nc=null, $notrig
 
 function doUpdate(&$object, &$line, $subtotal_nc, $notrigger = 0)
 {
-	global $user;
+	global $user, $conf;
 
 	if (TSubtotal::isFreeText($line) || TSubtotal::isSubtotal($line)) return 1;
 	// Update extrafield et total
 	if(! empty($subtotal_nc)) {
 		$line->total_ht = $line->total_tva = $line->total_ttc = $line->total_localtax1 = $line->total_localtax2 =
 			$line->multicurrency_total_ht = $line->multicurrency_total_tva = $line->multicurrency_total_ttc = 0;
+		if(!empty($conf->global->SUBTOTAL_NONCOMPRIS_UPDATE_PA_HT)) $line->pa_ht = '0';
 
 		$line->array_options['options_subtotal_nc'] = 1;
 
