@@ -313,10 +313,10 @@ function showParameters() {
 
     print '        <td style="text-align: right;">';
     print '            <form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-    print '                <input type="hidden" name="token" value="'.$_SESSION['newtoken']'.">';
+    print '                <input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';	// InfraS change
     print '                <input type="hidden" name="action" value="set_SUBTOTAL_SHIPPABLE_ORDER" />';
     echo $html->selectyesno("SUBTOTAL_SHIPPABLE_ORDER",$conf->global->SUBTOTAL_SHIPPABLE_ORDER,1);
-	print '					<input type="submit" class="button" value="'.$langs->trans("Modify")'.">';
+	print '					<input type="submit" class="button" value="'.$langs->trans("Modify").'">';	// InfraS change
 	print '				</form>';
 	print '			</td>';
 	print '		</tr>';

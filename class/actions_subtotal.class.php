@@ -411,6 +411,38 @@ class ActionsSubtotal
 				|| in_array('invoicereccard',$TContext)
 			)
 	        {
+/*		// InfraS change begin
+	            $hideInnerLines	= isset( $_SESSION['subtotal_hideInnerLines_'.$parameters['modulepart']][$object->id] ) ?  $_SESSION['subtotal_hideInnerLines_'.$parameters['modulepart']][$object->id] : 0;
+	            $hidedetails	= isset( $_SESSION['subtotal_hidedetails_'.$parameters['modulepart']][$object->id] ) ?  $_SESSION['subtotal_hidedetails_'.$parameters['modulepart']][$object->id] : 0;
+				$hidepricesDefaultConf = !empty($conf->global->SUBTOTAL_HIDE_PRICE_DEFAULT_CHECKED)?$conf->global->SUBTOTAL_HIDE_PRICE_DEFAULT_CHECKED:0;
+				$hideprices= isset( $_SESSION['subtotal_hideprices_'.$parameters['modulepart']][$object->id] ) ?  $_SESSION['subtotal_hideprices_'.$parameters['modulepart']][$object->id] : $hidepricesDefaultConf;
+				$var=false;
+				$out = '';
+		     	$out.= '<tr '.$bc[$var].'>
+		     			<td colspan="4" align="right">
+		     				<label for="hideInnerLines">'.$langs->trans('HideInnerLines').'</label>
+		     				<input type="checkbox" onclick="if($(this).is(\':checked\')) { $(\'#hidedetails\').prop(\'checked\', \'checked\')  }" id="hideInnerLines" name="hideInnerLines" value="1" '.(( $hideInnerLines ) ? 'checked="checked"' : '' ).' />
+		     			</td>
+		     			</tr>';
+
+		     	$var=!$var;
+		     	$out.= '<tr '.$bc[$var].'>
+		     			<td colspan="4" align="right">
+		     				<label for="hidedetails">'.$langs->trans('SubTotalhidedetails').'</label>
+		     				<input type="checkbox" id="hidedetails" name="hidedetails" value="1" '.(( $hidedetails ) ? 'checked="checked"' : '' ).' />
+		     			</td>
+		     			</tr>';
+
+		     	$var=!$var;
+		     	$out.= '<tr '.$bc[$var].'>
+		     			<td colspan="4" align="right">
+		     				<label for="hideprices">'.$langs->trans('SubTotalhidePrice').'</label>
+		     				<input type="checkbox" id="hideprices" name="hideprices" value="1" '.(( $hideprices ) ? 'checked="checked"' : '' ).' />
+		     			</td>
+		     			</tr>';
+*/		// InfraS change end
+
+
 				if (
 					(in_array('propalcard',$TContext) && !empty($conf->global->SUBTOTAL_PROPAL_ADD_RECAP))
 					|| (in_array('ordercard',$TContext) && !empty($conf->global->SUBTOTAL_COMMANDE_ADD_RECAP))
@@ -420,9 +452,9 @@ class ActionsSubtotal
 					|| (in_array('invoicereccard',$TContext)  && !empty($conf->global->SUBTOTAL_INVOICE_ADD_RECAP ))
 				)
 				{
-					$out = '';
+					$out = '';	// InfraS change
 					$out.= '
-						<tr class = "oddeven">
+						<tr class = "oddeven">	<!-- InfraS change -->
 							<td colspan="4" align="right">
 								<label for="subtotal_add_recap">'.$langs->trans('subtotal_add_recap').'</label>
 								<input type="checkbox" id="subtotal_add_recap" name="subtotal_add_recap" value="1" '.( GETPOST('subtotal_add_recap', 'none') ? 'checked="checked"' : '' ).' />
@@ -478,6 +510,7 @@ class ActionsSubtotal
 				if($line->qty>90) {
 					$substitutionarray['line_modsubtotal_total'] = true;
 
+					//list($total, $total_tva, $total_ttc, $TTotal_tva) = $this->getTotalLineFromObject($object, $line, '', 1);
                     $TInfo = $this->getTotalLineFromObject($object, $line, '', 1);
 
 					$substitutionarray['line_price_ht'] = price($TInfo[0]);
@@ -668,18 +701,21 @@ class ActionsSubtotal
 			foreach($Tab as $line) {
                 $result = 0;
 				// InfraS add begin
-				if ($conf->global->MAIN_MODULE_INFRASPACKPLUS)	dol_include_once('/infraspackplus/core/lib/infraspackplus.lib.php');
-				$isOuvrage	= $conf->global->MAIN_MODULE_INFRASPACKPLUS ? infraspackplus_isSubTotalLine($line, $object->element, 'modouvrage') : '';
-				if (!empty($isOuvrage))
+				if ($conf->global->MAIN_MODULE_OUVRAGE)
 				{
-					// Call trigger
-					include_once DOL_DOCUMENT_ROOT.'/core/class/interfaces.class.php';
-					$interface			= new Interfaces($db);
-					$result				= $interface->run_triggers('OUVRAGE_DELETE', $line, $user, $langs, $conf);
-					if ($result < 0)	$error++;
-					// End call triggers
-				}	// if (!empty($isOuvrage))
-					// InfraS add end
+					dol_include_once('/ouvrage/core/modules/modouvrage.class.php');
+					$objMod	= class_exists('modouvrage') ? new modouvrage($db) : '';
+					if ($line->product_type == 9 && $line->special_code == $objMod->numero)
+					{
+						// Call trigger
+						include_once DOL_DOCUMENT_ROOT.'/core/class/interfaces.class.php';
+						$interface			= new Interfaces($db);
+						$result				= $interface->run_triggers('OUVRAGE_DELETE', $line, $user, $langs, $conf);
+						if ($result < 0)	$error++;
+						// End call triggers
+					}	// if ($line->product_type == 9 && $line->special_code == $objMod->numero)
+				}	// if ($conf->global->MAIN_MODULE_OUVRAGE)
+				// InfraS add end
 				$idLine = $line->id;
 				/**
 				 * @var $object Facture
@@ -713,7 +749,7 @@ class ActionsSubtotal
 				 */
 				else if($object->element=='order_supplier')
 				{
-					$result = $object->deleteline($idLine);
+                    			$result = $object->deleteline($idLine);
 				}
 				/**
 				 * @var $object Facturerec
@@ -757,6 +793,34 @@ class ActionsSubtotal
 	function formAddObjectLine ($parameters, &$object, &$action, $hookmanager) {
 		return 0;
 	}
+// InfraS change begin
+/*	function changeRoundingMode($parameters, &$object, &$action, $hookmanager)
+	{
+		global $conf;
+		if (!empty($conf->global->SUBTOTAL_MANAGE_COMPRIS_NONCOMPRIS) && !empty($object->table_element_line) && in_array($object->element, array('commande', 'facture', 'propal')))
+		{
+			if ($object->element == 'commande')
+				$obj = new OrderLine($object->db);
+			if ($object->element == 'propal')
+				$obj = new PropaleLigne($object->db);
+			if ($object->element == 'facture')
+				$obj = new FactureLigne($object->db);
+			if (!empty($parameters['fk_element']))
+			{
+
+				if($obj->fetch($parameters['fk_element'])){
+					$obj->id= $obj->rowid;
+					if (empty($obj->array_options))
+						$obj->fetch_optionals();
+					if (!empty($obj->array_options['options_subtotal_nc']))
+						return 1;
+				}
+			}
+		}
+
+		return 0;
+	}
+*/	// InfraS change end
 
 	function getArrayOfLineForAGroup(&$object, $lineid) {
 		$qty_line = 0;
@@ -786,9 +850,9 @@ class ActionsSubtotal
 	}
 
 	function getTotalLineFromObject(&$object, &$line, $use_level=false, $return_all=0) {
-		global $conf;
+		global $conf, $db;	// InfraS change
 
-		if ($conf->global->MAIN_MODULE_INFRASPACKPLUS)	dol_include_once('/infraspackplus/core/lib/infraspackplus.lib.php');	// InfraS add
+		if ($conf->global->MAIN_MODULE_OUVRAGE)	dol_include_once('/ouvrage/core/modules/modouvrage.class.php');	// InfraS add
 
 		$rang = $line->rang;
 		$qty_line = $line->qty;
@@ -801,6 +865,7 @@ class ActionsSubtotal
 		$total_tva = 0;
 		$total_ttc = 0;
 		$TTotal_tva = array();
+
 
 		$sign=1;
 		if (isset($object->type) && $object->type == 2 && ! empty($conf->global->INVOICE_POSITIVE_CREDIT_NOTE)) $sign=-1;
@@ -816,7 +881,13 @@ class ActionsSubtotal
 		{
 			$l->total_ttc = doubleval($l->total_ttc);
 			$l->total_ht = doubleval($l->total_ht);
-			$isOuvrage	= $conf->global->MAIN_MODULE_INFRASPACKPLUS ? infraspackplus_isSubTotalLine($l, $object->element, 'modouvrage') : '';	// InfraS add
+        	// InfraS add begin
+        	if (class_exists('modouvrage'))
+            {
+            	$objMod	= new modouvrage($db);
+            	$isOuvrage	= $l->product_type == 9 && !empty($objMod->numero) && $l->special_code == $objMod->numero ? true : '';
+            }
+        	// InfraS add end
 
 			//print $l->rang.'>='.$rang.' '.$total.'<br/>';
             if ($l->rang>=$rang) continue;
@@ -869,6 +940,7 @@ class ActionsSubtotal
 	 * @param $w            float               width
 	 * @param $h            float               height
 	 */
+	 /* // InfraS change begin
 	function pdf_add_total(&$pdf,&$object, &$line, $label, $description,$posx, $posy, $w, $h) {
 		global $conf,$subtotal_last_title_posy,$langs;
 
@@ -972,6 +1044,7 @@ class ActionsSubtotal
 
 
 	}
+	 */ // InfraS change end
 
 	/**
 	 * @param $pdf          TCPDF               PDF object
@@ -984,6 +1057,7 @@ class ActionsSubtotal
 	 * @param $w            float               width
 	 * @param $h            float               height
 	 */
+	  /* // InfraS change begin
 	function pdf_add_title(&$pdf,&$object, &$line, $label, $description,$posx, $posy, $w, $h) {
 
 		global $db,$conf,$subtotal_last_title_posy;
@@ -1026,6 +1100,7 @@ class ActionsSubtotal
 		}
 
 	}
+	 */ // InfraS change begin
 
 	function pdf_writelinedesc_ref($parameters=array(), &$object, &$action='') {
 	// ultimate PDF hook O_o
@@ -1079,6 +1154,7 @@ class ActionsSubtotal
 			$this->resprints = $object->lines[$parameters['i']]->qty;
 			return 1;
 		}
+		/*	// InfraS change begin
 		elseif (!empty($conf->global->SUBTOTAL_IF_HIDE_PRICES_SHOW_QTY))
 		{
 			$hideInnerLines = GETPOST('hideInnerLines', 'int');
@@ -1088,7 +1164,7 @@ class ActionsSubtotal
 				$this->resprints = $object->lines[$parameters['i']]->qty;
 			}
 		}
-
+		*/	// InfraS change end
 		if(is_array($parameters)) $i = & $parameters['i'];
 		else $i = (int)$parameters;
 
@@ -1685,11 +1761,9 @@ class ActionsSubtotal
 		return 0;
 	}
 
+	/* // InfraS change begin
 	function pdf_writelinedesc($parameters=array(), &$object, &$action)
 	{
-		/**
-		 * @var $pdf    TCPDF
-		 */
 		global $pdf,$conf;
 
 		foreach($parameters as $key=>$value) {
@@ -1780,17 +1854,6 @@ class ActionsSubtotal
 					$pageAfter = $pdf->getPage();
 
 
-					/*if($pageAfter>$pageBefore) {
-						print "T $pageAfter>$pageBefore<br>";
-						$pdf->rollbackTransaction(true);
-						$pdf->addPage('','', true);
-						print 'add T'.$pdf->getPage().' '.$line->rowid.' '.$pdf->GetY().' '.$posy.'<br />';
-
-						$posy = $pdf->GetY();
-						$this->pdf_add_title($pdf,$object, $line, $label, $description,$posx, $posy, $w, $h);
-						$posy = $pdf->GetY();
-					}
-				*/
 
 					if($object->element == 'delivery')
 					{
@@ -1809,22 +1872,9 @@ class ActionsSubtotal
 			$this->resprints = -1;
 		}
 
-		/* TODO je desactive parce que je comprends pas PH Style, mais à test
-		else {
-
-			if($hideInnerLines) {
-				$pdf->rollbackTransaction(true);
-			}
-			else {
-				$labelproductservice=pdf_getlinedesc($object, $i, $outputlangs, $hideref, $hidedesc, $issupplierline);
-				$pdf->writeHTMLCell($w, $h, $posx, $posy, $outputlangs->convToOutputCharset($labelproductservice), 0, 1);
-			}
-
-		}*/
-
-
         return 0;
 	}
+	*/ 	// InfraS change end
 
 	/**
 	 * Permet de récupérer le titre lié au sous-total
@@ -1962,7 +2012,7 @@ class ActionsSubtotal
 			$colspan = 5;
 			if($object->element == 'facturerec' ) $colspan = 3;
 			if($object->element == 'order_supplier') (float) DOL_VERSION < 7.0 ? $colspan = 3 : $colspan = 6;
-			if($object->element == 'invoice_supplier') (float) DOL_VERSION < 7.0 ? $colspan = 4: $colspan = 7;
+			if($object->element == 'invoice_supplier') (float) DOL_VERSION < 7.0 ? $colspan = 4: $colspan = 5;	// InfraS change
 			if($object->element == 'supplier_proposal') (float) DOL_VERSION < 6.0 ? $colspan = 4 : $colspan = 3;
 			if(!empty($conf->multicurrency->enabled) && ((float) DOL_VERSION < 8.0 || $object->multicurrency_code != $conf->currency)) {
 				$colspan++; // Colonne PU Devise
@@ -2128,7 +2178,7 @@ class ActionsSubtotal
 							$doleditor = new DolEditor('line-description', $line->description, '', 100, $toolbarname, '',
 								false, true, $cked_enabled, $nbrows, '98%', (bool) $readonlyForSituation);
 							$doleditor->Create();
-
+							/*	// InfraS change begin
 							$TKey = null;
 							if ($line->element == 'propaldet') $TKey = explode(',', $conf->global->SUBTOTAL_LIST_OF_EXTRAFIELDS_PROPALDET);
 							elseif ($line->element == 'commandedet') $TKey = explode(',', $conf->global->SUBTOTAL_LIST_OF_EXTRAFIELDS_COMMANDEDET);
@@ -2150,6 +2200,7 @@ class ActionsSubtotal
 									}
 								}
 							}
+							*/	// InfraS change end
 						}
 
 					}
@@ -2298,7 +2349,7 @@ class ActionsSubtotal
 			</tr>
 			<?php
 
-
+			/*	// InfraS change begin
 			// Affichage des extrafields à la Dolibarr (car sinon non affiché sur les titres)
 			if(TSubtotal::isTitle($line) && !empty($conf->global->SUBTOTAL_ALLOW_EXTRAFIELDS_ON_TITLE)) {
 
@@ -2365,7 +2416,7 @@ class ActionsSubtotal
 				$line->element = $ex_element;
 
 			}
-
+			*/	// InfraS change end
 			return 1;
 
 		}
@@ -2997,6 +3048,8 @@ class ActionsSubtotal
 		<?php
 
 		}
+
+
 
 	}
 
