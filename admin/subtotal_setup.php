@@ -232,16 +232,6 @@ function showParameters() {
 	print '</form>';
 	print '</td></tr>';
 
-	// InfraS add begin
-	print '<tr class = "oddeven">';
-	print '<td>'.$langs->trans("SUBTOTAL_SUBTOTAL_HIDE_BACKGROUND").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
-	print '<td align="center" width="300">';
-	print ajax_constantonoff('SUBTOTAL_SUBTOTAL_HIDE_BACKGROUND');
-	print '</td></tr>';
-	// InfraS add end
-
-
 //	$var=!$var;	// InfraS change
 	print '<tr class = "oddeven">';	// InfraS change
 	print '<td>'.$langs->trans('SUBTOTAL_AUTO_ADD_SUBTOTAL_ON_ADDING_NEW_TITLE').'</td>';
@@ -322,7 +312,7 @@ function showParameters() {
 	print '		</tr>';
 	}
 	print '</table>';
-	
+
 }
 
 dol_fiche_end(-1);
