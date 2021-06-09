@@ -921,12 +921,12 @@ class ActionsSubtotal
                 }
                 else
                 {
-                    if ($l->product_type != 9) {
-                        $total += $l->total_ht;
-                        $total_tva += $l->total_tva;
-                        $TTotal_tva[$l->tva_tx] += $l->total_tva;
-                        $total_ttc += $l->total_ttc;
-                    }
+			if ($l->product_type != 9) {
+                    		$total += $l->total_ht;
+                    		$total_tva += $l->total_tva;
+                    		$TTotal_tva[$l->tva_tx] += $l->total_tva;
+                    		$total_ttc += $l->total_ttc;
+			}
                 }
             }
 		}
@@ -1019,25 +1019,53 @@ class ActionsSubtotal
 		if (!$hidePriceOnSubtotalLines) {
 			$total_to_print = price($line->total);
 
-			if($total_to_print !== '')
+			if (!empty($conf->global->SUBTOTAL_MANAGE_COMPRIS_NONCOMPRIS))
 			{
-				dol_include_once('/infraspackplus/core/lib/infraspackplus.pdf.lib.php');	// InfraS add
-				$TInfo = $this->getTotalLineFromObject($object, $line, '', 1);
-				$TTotal_tva = $TInfo[3];
-				$total_to_print	= pdf_InfraSPlus_price($object, $TInfo[0], $pdf->outputlangs);	// InfraS change
-				$totalTTC_line	= pdf_InfraSPlus_price($object, $TInfo[2], $pdf->outputlangs);	// InfraS add
-				$line->total_ht = $TInfo[0];
-				$line->total = $TInfo[0];
-				if (!TSubtotal::isModSubtotalLine($line)) $line->total_tva = $TInfo[1];
-				$line->total_ttc = $TInfo[2];
+				$TTitle = TSubtotal::getAllTitleFromLine($line);
+				foreach ($TTitle as &$line_title)
+				{
+					if (!empty($line_title->array_options['options_subtotal_nc']))
+					{
+						$total_to_print = ''; // TODO Gestion "Compris/Non compris", voir si on affiche une annotation du genre "NC"
+						break;
+					}
+				}
 			}
+
+			if($total_to_print !== '') {
+
+				if (GETPOST('hideInnerLines', 'int'))
+				{
+					// Dans le cas des lignes cachés, le calcul est déjà fait dans la méthode beforePDFCreation et les lignes de sous-totaux sont déjà renseignés
+//					$line->TTotal_tva
+//					$line->total_ht
+//					$line->total_tva
+//					$line->total
+//					$line->total_ttc
+				}
+				else
+				{
+					//					list($total, $total_tva, $total_ttc, $TTotal_tva) = $this->getTotalLineFromObject($object, $line, '', 1);
+
+					$TInfo = $this->getTotalLineFromObject($object, $line, '', 1);
+					$TTotal_tva = $TInfo[3];
+					$total_to_print = price($TInfo[0]);
+
+                    $line->total_ht = $TInfo[0];
+					$line->total = $TInfo[0];
+					if (!TSubtotal::isModSubtotalLine($line)) $line->total_tva = $TInfo[1];
+					$line->total_ttc = $TInfo[2];
+				}
+			}
+
+			$pdf->SetXY($pdf->postotalht, $posy);
 			if($set_pagebreak_margin) $pdf->SetAutoPageBreak( $pageBreakOriginalValue , $bMargin);
+
 			if(!empty($object->subtotalPdfModelInfo->cols)){
 				$staticPdfModel->printStdColumnContent($pdf, $posy, 'totalexcltax', $total_to_print);
 			}
 			else{
-				$pdf->MultiCell($pdf->totalht_larg, $pdf->heightline, $total_to_print, '', 'R', 0, 1, $pdf->totalht_posx, $posy, true, 0, 0, false, 0, 'M', false);	// InfraS add
-				if ($pdf->show_ttc_col)	$pdf->MultiCell($pdf->totalttc_larg, $pdf->heightline, $totalTTC_line, '', 'R', 0, 1, $pdf->totalttc_posx, $posy, true, 0, 0, false, 0, 'M', false);	// InfraS add
+				$pdf->MultiCell($pdf->page_largeur-$pdf->marge_droite-$pdf->postotalht, 3, $total_to_print, 0, 'R', 0);
 			}
 		}
 		else{
@@ -1972,7 +2000,7 @@ class ActionsSubtotal
 			if ($object->statut == 0  && $createRight && !empty($conf->global->SUBTOTAL_ALLOW_DUPLICATE_LINE) && $object->element !== 'invoice_supplier')
             {
                 if(!(TSubtotal::isModSubtotalLine($line)) && ( $line->fk_prev_id === null ) && !($action == "editline" && GETPOST('lineid', 'int') == $line->id)) {
-                    echo '<a name="duplicate-'.$line->id.'" href="' . $_SERVER['PHP_SELF'] . '?' . $idvar . '=' . $object->id . '&action=duplicate&lineid=' . $line->id . '"><i class="fal fa-clone" aria-hidden="true"></i></a>';
+                    echo '<a name="duplicate-'.$line->id.'" href="' . $_SERVER['PHP_SELF'] . '?' . $idvar . '=' . $object->id . '&action=duplicate&lineid=' . $line->id . '"><i class="fa fa-clone" aria-hidden="true"></i></a>';
 
                     ?>
                         <script type="text/javascript">
@@ -2023,13 +2051,13 @@ class ActionsSubtotal
 				$colspan++; // Colonne PU Devise
 			}
 			if($object->element == 'commande' && $object->statut < 3 && !empty($conf->shippableorder->enabled)) $colspan++;
-
 			$margins_hidden_by_module = empty($conf->affmarges->enabled) ? false : !($_SESSION['marginsdisplayed']);
 			if(!empty($conf->margin->enabled) && !$margins_hidden_by_module) $colspan++;
-			if(!empty($conf->global->DISPLAY_MARGIN_RATES) && !$margins_hidden_by_module) $colspan++;
-			if(!empty($conf->global->DISPLAY_MARK_RATES) && !$margins_hidden_by_module) $colspan++;
+			if(!empty($conf->margin->enabled) && !empty($conf->global->DISPLAY_MARGIN_RATES) && !$margins_hidden_by_module) $colspan++;
+			if(!empty($conf->margin->enabled) && !empty($conf->global->DISPLAY_MARK_RATES) && !$margins_hidden_by_module) $colspan++;
 			if($object->element == 'facture' && !empty($conf->global->INVOICE_USE_SITUATION) && $object->type == Facture::TYPE_SITUATION) $colspan++;
 			if(!empty($conf->global->PRODUCT_USE_UNITS)) $colspan++;
+			// Compatibility module showprice
 			if(!empty($conf->showprice->enabled)) $colspan++;
 
 			/* Titre */
@@ -2295,12 +2323,20 @@ class ActionsSubtotal
 					else{
 						if ($object->statut == 0  && $createRight && !empty($conf->global->SUBTOTAL_ALLOW_DUPLICATE_BLOCK) && $object->element !== 'invoice_supplier')
 						{
-							if(TSubtotal::isTitle($line) && ( $line->fk_prev_id === null )) echo '<a href="'.$_SERVER['PHP_SELF'].'?'.$idvar.'='.$object->id.'&action=duplicate&lineid='.$line->id.'">'. img_picto($langs->trans('Duplicate'), 'duplicate@subtotal').'</a>';
+							if(TSubtotal::isTitle($line) && ( $line->fk_prev_id === null )) {
+								echo '<a class="subtotal-line-action-btn" title="'.$langs->trans('CloneLSubtotalBlock').'" href="'.$_SERVER['PHP_SELF'].'?'.$idvar.'='.$object->id.'&action=duplicate&lineid='.$line->id.'" >';
+								if(intval(DOL_VERSION) < 8) {
+									echo img_picto($langs->trans('Duplicate'), 'duplicate@subtotal');
+								} else {
+									echo '<i class="fa fa-clone" aria-hidden="true"></i>';
+								}
+								echo '</a>';
+							}
 						}
 
 						if ($object->statut == 0  && $createRight && !empty($conf->global->SUBTOTAL_ALLOW_EDIT_BLOCK))
 						{
-							echo '<a href="'.$_SERVER['PHP_SELF'].'?'.$idvar.'='.$object->id.'&action=editline&lineid='.$line->id.'#row-'.$line->id.'">'.img_edit().'</a>';
+							echo '<a class="subtotal-line-action-btn"  href="'.$_SERVER['PHP_SELF'].'?'.$idvar.'='.$object->id.'&action=editline&lineid='.$line->id.'#row-'.$line->id.'">'.img_edit().'</a>';
 						}
 					}
 
@@ -2318,7 +2354,7 @@ class ActionsSubtotal
 
 							if ($line->fk_prev_id === null)
 							{
-								echo '<a href="'.$_SERVER['PHP_SELF'].'?'.$idvar.'='.$object->id.'&action=ask_deleteline&lineid='.$line->id.'">'.img_delete().'</a>';
+								echo '<a class="subtotal-line-action-btn"  href="'.$_SERVER['PHP_SELF'].'?'.$idvar.'='.$object->id.'&action=ask_deleteline&lineid='.$line->id.'">'.img_delete().'</a>';
 							}
 
 							if(TSubtotal::isTitle($line) && ($line->fk_prev_id === null) )
@@ -2331,7 +2367,7 @@ class ActionsSubtotal
 									$img_delete = img_picto($langs->trans('deleteWithAllLines'), 'delete_all@subtotal');
 								}
 
-								echo '<a href="'.$_SERVER['PHP_SELF'].'?'.$idvar.'='.$object->id.'&action=ask_deleteallline&lineid='.$line->id.'">'.$img_delete.'</a>';
+								echo '<a class="subtotal-line-action-btn"  href="'.$_SERVER['PHP_SELF'].'?'.$idvar.'='.$object->id.'&action=ask_deleteallline&lineid='.$line->id.'">'.$img_delete.'</a>';
 							}
 						}
 					}
@@ -3049,7 +3085,11 @@ class ActionsSubtotal
             	background: #fffa90;
             	color: #777620;
             }
-            </style>
+
+			.subtotal-line-action-btn {
+				margin-right: 5px;
+			}
+			</style>
 		<?php
 
 		}
