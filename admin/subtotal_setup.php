@@ -243,6 +243,14 @@ function showParameters() {
 
 	// TODO ajouter ici la partie fournisseur en ce basant sur les 3 conf du dessus
 
+
+//	$var=!$var;	// InfraS change
+	print '<tr class = "oddeven">';	// InfraS change
+	print '<td>'.$langs->trans('NO_TITLE_SHOW_ON_EXPED_GENERATION').'</td>';
+	print '<td align="center" width="20">&nbsp;</td>';
+	print '<td align="center" width="300">';
+	print ajax_constantonoff('NO_TITLE_SHOW_ON_EXPED_GENERATION');
+	print '</td></tr>';
 	print '</table><br />';
 
 

@@ -1942,7 +1942,7 @@ class ActionsSubtotal
 	 */
 	function printObjectLine ($parameters, &$object, &$action, $hookmanager)
 	{
-		global $conf,$langs,$user,$db,$bc;
+		global $conf, $langs, $user, $db, $bc, $inputalsopricewithtax;	// InfraS change
 
 		$num = &$parameters['num'];
 		$line = &$parameters['line'];
@@ -2050,11 +2050,13 @@ class ActionsSubtotal
 			if(!empty($conf->multicurrency->enabled) && ((float) DOL_VERSION < 8.0 || $object->multicurrency_code != $conf->currency)) {
 				$colspan++; // Colonne PU Devise
 			}
+			if($inputalsopricewithtax)	 $colspan++;	// InfraS add
 			if($object->element == 'commande' && $object->statut < 3 && !empty($conf->shippableorder->enabled)) $colspan++;
-			$margins_hidden_by_module = empty($conf->affmarges->enabled) ? false : !($_SESSION['marginsdisplayed']);
-			if(!empty($conf->margin->enabled) && !$margins_hidden_by_module) $colspan++;
-			if(!empty($conf->margin->enabled) && !empty($conf->global->DISPLAY_MARGIN_RATES) && !$margins_hidden_by_module) $colspan++;
-			if(!empty($conf->margin->enabled) && !empty($conf->global->DISPLAY_MARK_RATES) && !$margins_hidden_by_module) $colspan++;
+	//		$margins_hidden_by_module = empty($conf->affmarges->enabled) ? false : !($_SESSION['marginsdisplayed']);	// InfraS change
+	//		if(!empty($conf->margin->enabled) && !$margins_hidden_by_module) $colspan++;	// InfraS change
+			if(!empty($conf->margin->enabled) && !empty($user->rights->margins->creer)) $colspan++;	// InfraS add
+			if(!empty($conf->margin->enabled) && !empty($conf->global->DISPLAY_MARGIN_RATES) && $user->rights->margins->liretous)	$colspan++;	// InfraS change
+			if(!empty($conf->margin->enabled) && !empty($conf->global->DISPLAY_MARK_RATES) && $user->rights->margins->liretous)	$colspan++;	// InfraS change
 			if($object->element == 'facture' && !empty($conf->global->INVOICE_USE_SITUATION) && $object->type == Facture::TYPE_SITUATION) $colspan++;
 			if(!empty($conf->global->PRODUCT_USE_UNITS)) $colspan++;
 			// Compatibility module showprice
