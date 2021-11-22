@@ -916,7 +916,8 @@ class ActionsSubtotal
                 // TODO retirer le test avec $builddoc quand Dolibarr affichera le total progression sur la card et pas seulement dans le PDF
                 if ($builddoc && $object->element == 'facture' && $object->type==Facture::TYPE_SITUATION)
                 {
-                    if ($l->situation_percent > 0 && !empty($l->total_ht))
+					$sitFacTotLineAvt	= isset($conf->global->INFRASPLUS_PDF_SITFAC_TOTLINE_AVT) ? $conf->global->INFRASPLUS_PDF_SITFAC_TOTLINE_AVT : 0;	// InfraS add
+                    if ($l->situation_percent > 0 && !empty($l->total_ht) && empty($sitFacTotLineAvt))	// InfraS change
                     {
                         $prev_progress = 0;
                         $progress = 1;
@@ -934,15 +935,23 @@ class ActionsSubtotal
                         if ($l->total_ttc != 0)	$total_ttc += $sign * ($l->total_tva / ($l->total_ttc / 100)) * $progress;	// InfraS change
 
                     }
+					else {	// InfraS add begin
+						if ($l->product_type != 9) {
+										$total += $l->total_ht;
+										$total_tva += $l->total_tva;
+										$TTotal_tva[$l->tva_tx] += $l->total_tva;
+										$total_ttc += $l->total_ttc;
+						}
+					}
+					// InfraS add end
                 }
-                else
-                {
-			if ($l->product_type != 9) {
-                    		$total += $l->total_ht;
-                    		$total_tva += $l->total_tva;
-                    		$TTotal_tva[$l->tva_tx] += $l->total_tva;
-                    		$total_ttc += $l->total_ttc;
-			}
+                else {
+					if ($l->product_type != 9) {
+									$total += $l->total_ht;
+									$total_tva += $l->total_tva;
+									$TTotal_tva[$l->tva_tx] += $l->total_tva;
+									$total_ttc += $l->total_ttc;
+					}
                 }
             }
 		}
