@@ -55,7 +55,7 @@ class ActionsSubtotal
 
 	function createDictionaryFieldlist($parameters, &$object, &$action, $hookmanager)
 	{
-		global $conf;
+		global $conf, $langs;
 
 		if ($parameters['tabname'] == MAIN_DB_PREFIX.'c_subtotal_free_text')
 		{
@@ -68,7 +68,27 @@ class ActionsSubtotal
 				if ($resql && ($obj = $this->db->fetch_object($resql))) $value = $obj->content;
 			}
 
-			?>
+            // Editor wysiwyg
+            $toolbarname = 'dolibarr_notes';
+            $disallowAnyContent = true;
+            if (isset($conf->global->FCKEDITOR_ALLOW_ANY_CONTENT)) {
+                $disallowAnyContent = empty($conf->global->FCKEDITOR_ALLOW_ANY_CONTENT); // Only predefined list of html tags are allowed or all
+            }
+            if (!empty($conf->global->FCKEDITOR_SKIN)) {
+                $skin = $conf->global->FCKEDITOR_SKIN;
+            } else {
+                $skin = 'moono-lisa'; // default with ckeditor 4.6 : moono-lisa
+            }
+            if (!empty($conf->global->FCKEDITOR_ENABLE_SCAYT_AUTOSTARTUP)) {
+                $scaytautostartup = 'scayt_autoStartup: true,';
+            } else {
+                $scaytautostartup = '/*scayt is disable*/'; // Disable by default
+            }
+            $htmlencode_force = preg_match('/_encoded$/', $toolbarname) ? 'true' : 'false';
+            $editor_height = empty($conf->global->MAIN_DOLEDITOR_HEIGHT) ? 100 : $conf->global->MAIN_DOLEDITOR_HEIGHT;
+            $editor_allowContent = $disallowAnyContent ? 'false' : 'true';
+
+            ?>
 			<script type="text/javascript">
 				$(function() {
 
@@ -83,11 +103,50 @@ class ActionsSubtotal
 								});
 
 								<?php if (!empty($conf->fckeditor->enabled) && !empty($conf->global->FCKEDITOR_ENABLE_DETAILS)) { ?>
+
+                                var ckeditor_params = {
+                                    customConfig: ckeditorConfig,
+                                    readOnly: false,
+                                    htmlEncodeOutput: <?php print $htmlencode_force; ?>,
+                                    allowedContent: <?php print $editor_allowContent; ?>,
+                                    extraAllowedContent: 'a[target];div{float,display}',
+                                    disallowedContent : '',
+                                    fullPage : false,
+                                    toolbar: '<?php print $toolbarname; ?>',
+                                    toolbarStartupExpanded: false,
+                                    width: '',
+                                    height: '<?php print $editor_height; ?>',
+                                    skin: '<?php print $skin; ?>',
+                                    <?php print $scaytautostartup; ?>
+                                    scayt_sLang: '<?php print $langs->getDefaultLang(); ?>',
+                                    language: '<?php print $langs->defaultlang; ?>',
+                                    textDirection: '<?php print $langs->trans('DIRECTION'); ?>',
+                                    on :
+                                        {
+                                            instanceReady : function( ev )
+                                            {
+                                                // Output paragraphs as <p>Text</p>.
+                                                this.dataProcessor.writer.setRules( 'p',
+                                                    {
+                                                        indent : false,
+                                                        breakBeforeOpen : true,
+                                                        breakAfterOpen : false,
+                                                        breakBeforeClose : false,
+                                                        breakAfterClose : true
+                                                    });
+                                            }
+                                        },
+                                    disableNativeSpellChecker: false,
+                                    filebrowserBrowseUrl: ckeditorFilebrowserBrowseUrl,
+                                    filebrowserImageBrowseUrl: ckeditorFilebrowserImageBrowseUrl,
+                                    filebrowserWindowWidth: '900',
+                                    filebrowserWindowHeight: '500',
+                                    filebrowserImageWindowWidth: '900',
+                                    filebrowserImageWindowHeight: '500',
+                                };
+
 								$('textarea[name=content]').each(function(i, item) {
-									CKEDITOR.replace(item, {
-										toolbar: 'dolibarr_notes'
-										,customConfig : ckeditorConfig
-									});
+                                    CKEDITOR.replace(item, ckeditor_params);
 								});
 								<?php } ?>
 							}
