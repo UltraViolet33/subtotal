@@ -66,7 +66,9 @@ class modSubtotal extends DolibarrModules
         // (where XXX is value of numeric property 'numero' of module)
         $this->description = "Module permettant l'ajout de sous-totaux et sous-totaux intermédiaires et le déplacement d'une ligne aisée de l'un dans l'autre";
         // Possible values for version are: 'development', 'experimental' or version
-        $this->version = '3.6.8 - InfraS';
+
+        $this->version = '3.12.0 - InfraS';
+
         // Key used in llx_const table to save module status enabled/disabled
         // (where MYMODULE is value of property name of module in uppercase)
         $this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
@@ -78,7 +80,7 @@ class modSubtotal extends DolibarrModules
         // use this->picto='pictovalue'
         // If file is in module/img directory under name object_pictovalue.png
         // use this->picto='pictovalue@module'
-        $this->picto = 'subtotal@subtotal'; // mypicto@titre
+        $this->picto = 'modsubtotal@subtotal'; // mypicto@titre
         // Defined all module parts (triggers, login, substitutions, menus, css, etc...)
         // for default path (eg: /titre/core/xxxxx) (0=disable, 1=enable)
         // for specific path of parts (eg: /titre/core/modules/barcode)
@@ -107,7 +109,6 @@ class modSubtotal extends DolibarrModules
                 ,'ordercard'
                 ,'ordersuppliercard'
                 ,'odtgeneration'
-				,'pdfgeneration'
                 ,'orderstoinvoice'
                 ,'orderstoinvoicesupplier'
                 ,'admin'
@@ -146,9 +147,9 @@ class modSubtotal extends DolibarrModules
         // List of modules id to disable if this one is disabled
         $this->requiredby = array();
         // Minimum version of PHP required by module
-        $this->phpmin = array(5, 3);
+        $this->phpmin = array(5, 4);
         // Minimum version of Dolibarr required by module
-        $this->need_dolibarr_version = array(3, 2);
+        $this->need_dolibarr_version = array(7, 0);
         $this->langfiles = array("subtotal@subtotal"); // langfiles@titre
         // Constants
         // List of particular constants to add when module is enabled

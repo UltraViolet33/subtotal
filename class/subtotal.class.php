@@ -88,6 +88,7 @@ class TSubtotal {
         return $line_show_qty;
     }
 
+
 	/**
 	 * @param CommonObject $object
 	 * @param string       $label
@@ -141,11 +142,7 @@ class TSubtotal {
 			/**
 			 * @var $object Propal Fournisseur
 			 */
-			else if($object->element=='supplier_proposal') {
-                /** @var SupplierProposal $object */
-                $object->special_code = TSubtotal::$module_number;
-                $res = $object->addline($label, 0, $qty, 0, 0, 0, 0, 0, 'HT', 0, 0, 9, $rang, TSubtotal::$module_number, 0, 0, 0, '');
-            }
+			else if($object->element=='supplier_proposal') $res = $object->addline($desc, 0,$qty,0,0,0,0,0,'HT',0,0,9,$rang, TSubtotal::$module_number, 0, 0, 0, $label);
 
 			/**
 			 * @var $object Commande
@@ -814,8 +811,6 @@ class TSubtotal {
 		        break;
 
 		    case 'supplier_proposal':
-                $object->special_code = self::$module_number;
-                if (empty($desc)) $desc = $label;
 		        $res = $object->updateline($rowid, $pu, $qty, $remise_percent, $txtva, $txlocaltax1, $txlocaltax2, $desc, $price_base_type, $info_bits, $special_code, $fk_parent_line, $skip_update_total, $fk_fournprice, $pa_ht, $label, $type, $array_options,'', $fk_unit);
 		        break;
 

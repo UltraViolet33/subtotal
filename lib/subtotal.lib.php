@@ -385,3 +385,85 @@ function _updateLine($element, $elementid, $lineid)
 {
 	_updateLineNC($element, $elementid, $lineid);
 }
+
+
+/**
+ * duplicate from action_submodule
+ * @param $object
+ * @param $line
+ * @param false $use_level
+ * @param int $return_all
+ * @return array|float|int
+ */
+function getTotalLineFromObject(&$object, &$line, $use_level=false, $return_all=0) {
+	global $conf;
+
+	$rang = $line->rang;
+	$qty_line = $line->qty;
+	$lvl = 0;
+	if (TSubtotal::isSubtotal($line)) $lvl = TSubtotal::getNiveau($line);
+
+	$title_break = TSubtotal::getParentTitleOfLine($object, $rang, $lvl);
+
+	$total = 0;
+	$total_tva = 0;
+	$total_ttc = 0;
+	$TTotal_tva = array();
+
+
+	$sign=1;
+	if (isset($object->type) && $object->type == 2 && ! empty($conf->global->INVOICE_POSITIVE_CREDIT_NOTE)) $sign=-1;
+
+	if (GETPOST('action', 'none') == 'builddoc') $builddoc = true;
+	else $builddoc = false;
+
+	dol_include_once('/subtotal/class/subtotal.class.php');
+
+	$TLineReverse = array_reverse($object->lines);
+
+	foreach($TLineReverse as $l)
+	{
+		$l->total_ttc = doubleval($l->total_ttc);
+		$l->total_ht = doubleval($l->total_ht);
+
+		//print $l->rang.'>='.$rang.' '.$total.'<br/>';
+		if ($l->rang>=$rang) continue;
+		if (!empty($title_break) && $title_break->id == $l->id) break;
+		elseif (!TSubtotal::isModSubtotalLine($l))
+		{
+			// TODO retirer le test avec $builddoc quand Dolibarr affichera le total progression sur la card et pas seulement dans le PDF
+			if ($builddoc && $object->element == 'facture' && $object->type==Facture::TYPE_SITUATION)
+			{
+				if ($l->situation_percent > 0 && !empty($l->total_ht))
+				{
+					$prev_progress = 0;
+					$progress = 1;
+					if (method_exists($l, 'get_prev_progress'))
+					{
+						$prev_progress = $l->get_prev_progress($object->id);
+						$progress = ($l->situation_percent - $prev_progress) / 100;
+					}
+
+					$result = $sign * ($l->total_ht / ($l->situation_percent / 100)) * $progress;
+					$total+= $result;
+					// TODO check si les 3 lignes du dessous sont corrects
+					$total_tva += $sign * ($l->total_tva / ($l->situation_percent / 100)) * $progress;
+					$TTotal_tva[$l->tva_tx] += $sign * ($l->total_tva / ($l->situation_percent / 100)) * $progress;
+					$total_ttc += $sign * ($l->total_tva / ($l->total_ttc / 100)) * $progress;
+
+				}
+			}
+			else
+			{
+				if ($l->product_type != 9) {
+					$total += $l->total_ht;
+					$total_tva += $l->total_tva;
+					$TTotal_tva[$l->tva_tx] += $l->total_tva;
+					$total_ttc += $l->total_ttc;
+				}
+			}
+		}
+	}
+	if (!$return_all) return $total;
+	else return array($total, $total_tva, $total_ttc, $TTotal_tva);
+}
