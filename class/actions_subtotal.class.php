@@ -2512,7 +2512,7 @@ class ActionsSubtotal
 	 */
 	function printObjectLine ($parameters, &$object, &$action, $hookmanager)
 	{
-		global $conf, $langs, $user, $db, $bc, $inputalsopricewithtax;	// InfraS change
+		global $conf, $langs, $user, $db, $bc, $usercandelete, $toselect, $inputalsopricewithtax;	// InfraS change
 
 		$num = &$parameters['num'];
 		$line = &$parameters['line'];
