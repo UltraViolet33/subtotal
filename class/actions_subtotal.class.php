@@ -634,9 +634,9 @@ class ActionsSubtotal
 					//list($total, $total_tva, $total_ttc, $TTotal_tva) = $this->getTotalLineFromObject($object, $line, '', 1);
 					$TInfo = $this->getTotalLineFromObject($object, $line, '', 1);
 
-					$substitutionarray['line_price_ht'] = price($TInfo[0],0,'',1,$conf->global->MAIN_MAX_DECIMALS_TOT,1);
-					$substitutionarray['line_price_vat'] = price($TInfo[1],0,'',1,$conf->global->MAIN_MAX_DECIMALS_TOT,1);
-					$substitutionarray['line_price_ttc'] = price($TInfo[2],0,'',1,$conf->global->MAIN_MAX_DECIMALS_TOT,1);
+					$substitutionarray['line_price_ht'] = price($TInfo[0],0,'',1,0,$conf->global->MAIN_MAX_DECIMALS_TOT);
+					$substitutionarray['line_price_vat'] = price($TInfo[1],0,'',1,0,$conf->global->MAIN_MAX_DECIMALS_TOT);
+					$substitutionarray['line_price_ttc'] = price($TInfo[2],0,'',1,0,$conf->global->MAIN_MAX_DECIMALS_TOT);
 				} else {
 					$substitutionarray['line_modsubtotal_title'] = true;
 				}
@@ -1335,7 +1335,7 @@ class ActionsSubtotal
 		}
 
 		if (!$hidePriceOnSubtotalLines) {
-			$total_to_print = price($line->total,0,'',1,$conf->global->MAIN_MAX_DECIMALS_TOT,1);
+			$total_to_print = price($line->total,0,'',1,0,$conf->global->MAIN_MAX_DECIMALS_TOT);
 			if (!empty($conf->global->SUBTOTAL_MANAGE_COMPRIS_NONCOMPRIS))
 			{
 				$TTitle = TSubtotal::getAllTitleFromLine($line);
@@ -1366,7 +1366,7 @@ class ActionsSubtotal
 
 					$TInfo = $this->getTotalLineFromObject($object, $line, '', 1);
 					$TTotal_tva = $TInfo[3];
-					$total_to_print = price($TInfo[0],0,'',1,$conf->global->MAIN_MAX_DECIMALS_TOT,1);
+					$total_to_print = price($TInfo[0],0,'',1,0,$conf->global->MAIN_MAX_DECIMALS_TOT);
 
                     $line->total_ht = $TInfo[0];
 					$line->total = $TInfo[0];
@@ -1716,7 +1716,7 @@ class ActionsSubtotal
 			}
 		}
 		if (GETPOST('hideInnerLines', 'int') && !empty($conf->global->SUBTOTAL_REPLACE_WITH_VAT_IF_HIDE_INNERLINES)){
-		    $this->resprints = price($object->lines[$i]->total_ht,0,'',1,$conf->global->MAIN_MAX_DECIMALS_TOT,1);
+		    $this->resprints = price($object->lines[$i]->total_ht,0,'',1,0,$conf->global->MAIN_MAX_DECIMALS_TOT);
 		}
 
 		// Si la gestion C/NC est active et que je suis sur un ligne dont l'extrafield est coché
@@ -1898,7 +1898,7 @@ class ActionsSubtotal
                 if(is_object($parentTitle) && empty($parentTitle->array_options)) $parentTitle->fetch_optionals();
                 if(! empty($parentTitle->array_options['options_show_total_ht'])) {
                     $TTotal = TSubtotal::getTotalBlockFromTitle($object, $parentTitle);
-                    $this->resprints = price($TTotal['total_unit_subprice'],0,'',1,$conf->global->MAIN_MAX_DECIMALS_TOT,1);
+                    $this->resprints = price($TTotal['total_unit_subprice'],0,'',1,0,$conf->global->MAIN_MAX_DECIMALS_TOT);
                 }
             }
 
@@ -2303,12 +2303,11 @@ class ActionsSubtotal
 
 			foreach($object->lines as $k=>&$line)
 			{
-				// InfraS add begin
                 // to keep compatibility with supplier order and old versions (rowid was replaced with id in fetch lines method)
                 if ($line->id > 0) {
                     $line->rowid = $line->id;
                 }
-				// InfraS add end
+
 				if($line->product_type==9 && $line->rowid>0)
 				{
 					$fk_parent_line = $line->rowid;
@@ -4030,4 +4029,20 @@ class ActionsSubtotal
 		<?php
 		$delayedhtmlcontent .= ob_get_clean();
 	}
+
+	/**
+	 * Re-generate the document after creation of recurring invoice by cron
+	 *
+	 * @param   array()         $parameters     Hook metadatas (context, etc...)
+	 * @param   CommonDocGenerator object      $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string          $action         Current action (if set). Generally create or edit or null
+	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	public function afterCreationOfRecurringInvoice($parameters, &$object, &$action, $hookmanager){
+        require_once __DIR__ . '/subtotal.class.php';
+        $TSub = new TSubtotal;
+        $TSub->generateDoc($object);
+        return 0;
+    }
 }
