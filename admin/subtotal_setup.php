@@ -189,9 +189,10 @@ $item = $formSetup->newItem('SUBTOTAL_SUBTOTAL_BACKGROUNDCOLOR');
 $item->fieldValue = (empty($conf->global->SUBTOTAL_SUBTOTAL_BACKGROUNDCOLOR)?'#ebebeb':$conf->global->SUBTOTAL_SUBTOTAL_BACKGROUNDCOLOR);
 $item->fieldAttr['type'] = 'color';
 $item->fieldOutputOverride ='<input type="color" value="'.$item->fieldValue .'" disabled />';
+}	// InfraS add
 
 $item = $formSetup->newItem('SUBTOTAL_DISABLE_SUMMARY')->setAsYesNo();
-
+if (!$conf->global->MAIN_MODULE_INFRASPACKPLUS) {	// InfraS add
 
 // Activer la gestion des blocs "Non Compris" pour exclusion du total
 $formSetup->newItem('ManageNonCompris')->setAsTitle();
