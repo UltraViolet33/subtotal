@@ -177,6 +177,10 @@ $item->helpText = $langs->transnoentities('SUBTOTAL_TITLE_SIZE_info');
 // Style des sous-totaux (B = gras, U = souligné, I = italique)
 $item = $formSetup->newItem('SUBTOTAL_SUBTOTAL_STYLE');
 $item->fieldAttr['placeholder'] = 'BU';
+
+//Affichage des marges sur les sous-totaux
+$formSetup->newItem('DISPLAY_MARGIN_ON_SUBTOTALS')->setAsYesNo();
+
 if (!$conf->global->MAIN_MODULE_INFRASPACKPLUS) {	// InfraS add
 // Couleur de fond utilisée sur les PDF pour les titres
 $item = $formSetup->newItem('SUBTOTAL_TITLE_BACKGROUNDCOLOR');
