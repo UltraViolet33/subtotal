@@ -3,8 +3,18 @@ All notable changes to this project will be documented in this file.
 
 # [Unreleased]
 
+- FIX : page break issue from PR #271, #292 & #328 - *19/07/2023* - 3.23.0  
+  To disable this fix use Hidden conf  SUBTOTAL_DISABLE_FIX_TRANSACTION set to 1  
+  This correction is being prepared for the next version, to avoid any possible side-effects that we haven't yet seen.
+
+# Version 3.22 - 19/07/2023
+
+- FIX : Add missing subtotal fail cause dolibarr make a reorder of subtotal after title juste added  - *28/07/2023* - 3.22.1
+- NEW : Add new option to chose for folder management behavior  - *17/07/2023* - 3.22.0
+  Also add a new BTN to open/close a complete block with its children too.
+- FIX : Folder management ajax call - *10/07/2023* - 3.21.1
 - NEW : Ajout des marges par blocs - *28/06/2023* - 3.21.0
-- NEW : add folder management - *28/06/2023* - 3.20.0
+- NEW : Add folder management - *28/06/2023* - 3.20.0
 
 ## Version 3.19 - 19/06/2023
 
