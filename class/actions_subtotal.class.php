@@ -2817,30 +2817,39 @@ class ActionsSubtotal
 
 			// HTML 5 data for js
             $data = $this->_getHtmlData($parameters, $object, $action, $hookmanager);
-
-
+			// InfraS add begin
+			$class													= '';
+			if (!empty($conf->global->SUBTOTAL_USE_NEW_FORMAT))		$class	.= ' newSubtotal';
+			if ($line->qty == 1)									$class	.= ' subtitleLevel1';	// Title level 1
+			elseif ($line->qty == 2)								$class	.= ' subtitleLevel2';	// Title level 2
+			elseif ($line->qty > 2 && $line->qty < 10)				$class	.= ' subtitleLevel3to9';	// Sub-total level 3 to 9
+			elseif ($line->qty == 99)								$class	.= ' subtotalLevel1';	// Sub-total level 1
+			elseif ($line->qty == 98)								$class	.= ' subtotalLevel2';	// Sub-total level 2
+			elseif ($line->qty > 90 && $line->qty < 98)				$class	.= ' subtotalLevel3to9';	// Sub-total level 3 to 9
+			elseif ($line->qty == 50)								$class	.= ' subtotalText';	// Free text
+			// InfraS add end
 			?>
 			<!-- actions_subtotal.class.php line <?php echo __LINE__; ?> -->
-			<tr class="oddeven" <?php echo $data; ?> rel="subtotal" id="row-<?php echo $line->id ?>" style="<?php
+			<tr class="oddeven<?php echo $class; ?>" <?php echo $data; ?> rel="subtotal" id="row-<?php echo $line->id ?>" style="<?php	// InfraS change
 					if (!empty($conf->global->SUBTOTAL_USE_NEW_FORMAT))
 					{
-						if($line->qty==99) print 'background:#adadcf';
-						else if($line->qty==98) print 'background:#ddddff;';
-						else if($line->qty<=97 && $line->qty>=91) print 'background:#eeeeff;';
-						else if($line->qty==1) print 'background:#adadcf;';
-						else if($line->qty==2) print 'background:#ddddff;';
-						else if($line->qty==50) print '';
-						else print 'background:#eeeeff;';
+						if($line->qty==99) print 'background:#adadcf';	// Sub-total level 1
+						else if($line->qty==98) print 'background:#ddddff;';	// Sub-total level 2
+						else if($line->qty<=97 && $line->qty>=91) print 'background:#eeeeff;';	// Sub-total level 3 to 9
+						else if($line->qty==1) print 'background:#adadcf;';	// Title level 1
+						else if($line->qty==2) print 'background:#ddddff;';	// Title level 2
+						else if($line->qty==50) print '';	// Free text
+						else print 'background:#eeeeff;';	// Title level 3 to 9
 
 						//A compléter si on veux plus de nuances de couleurs avec les niveau 4,5,6,7,8 et 9
 					}
 					else
 					{
-						if($line->qty==99) print 'background:#ddffdd';
-						else if($line->qty==98) print 'background:#ddddff;';
-						else if($line->qty==2) print 'background:#eeeeff; ';
-						else if($line->qty==50) print '';
-						else print 'background:#eeffee;' ;
+						if($line->qty==99) print 'background:#ddffdd';	// Sub-total level 1
+						else if($line->qty==98) print 'background:#ddddff;';	// Sub-total level 2
+						else if($line->qty==2) print 'background:#eeeeff; ';	// Title level 2
+						else if($line->qty==50) print '';	// Free text
+						else print 'background:#eeffee;' ;	// Title level 1 and 3 to 9
 					}
 
 			?>;">
@@ -3341,29 +3350,39 @@ class ActionsSubtotal
 
 			// HTML 5 data for js
 			$data = $this->_getHtmlData($parameters, $object, $action, $hookmanager);
+			// InfraS add begin
+			$class													= '';
+			if (!empty($conf->global->SUBTOTAL_USE_NEW_FORMAT))		$class	.= ' newSubtotal';
+			if ($line->qty == 1)									$class	.= ' subtitleLevel1';	// Title level 1
+			elseif ($line->qty == 2)								$class	.= ' subtitleLevel2';	// Title level 2
+			elseif ($line->qty > 2 && $line->qty < 10)				$class	.= ' subtitleLevel3to9';	// Sub-total level 3 to 9
+			elseif ($line->qty == 99)								$class	.= ' subtotalLevel1';	// Sub-total level 1
+			elseif ($line->qty == 98)								$class	.= ' subtotalLevel2';	// Sub-total level 2
+			elseif ($line->qty > 90 && $line->qty < 98)				$class	.= ' subtotalLevel3to9';	// Sub-total level 3 to 9
+			elseif ($line->qty == 50)								$class	.= ' subtotalText';	// Free text
+			// InfraS add end
 ?>
-
 			<!-- actions_subtotal.class.php line <?php echo __LINE__; ?> -->
-			<tr class="oddeven" <?php echo $data; ?> rel="subtotal" id="row-<?php echo $line->id ?>" style="<?php
+			<tr class="oddeven<?php echo $class; ?>" <?php echo $data; ?> rel="subtotal" id="row-<?php echo $line->id ?>" style="<?php
 					if (!empty($conf->global->SUBTOTAL_USE_NEW_FORMAT))
 					{
-						if($line->qty==99) print 'background:#adadcf';
-						else if($line->qty==98) print 'background:#ddddff;';
-						else if($line->qty<=97 && $line->qty>=91) print 'background:#eeeeff;';
-						else if($line->qty==1) print 'background:#adadcf;';
-						else if($line->qty==2) print 'background:#ddddff;';
-						else if($line->qty==50) print '';
-						else print 'background:#eeeeff;';
+						if($line->qty==99) print 'background:#adadcf';	// Sub-total level 1
+						else if($line->qty==98) print 'background:#ddddff;';	// Sub-total level 2
+						else if($line->qty<=97 && $line->qty>=91) print 'background:#eeeeff;';	// Sub-total level 3 to 9
+						else if($line->qty==1) print 'background:#adadcf;';	// title level 1
+						else if($line->qty==2) print 'background:#ddddff;';	// title level 2
+						else if($line->qty==50) print '';	// Free text
+						else print 'background:#eeeeff;';	// title level 3 to 9
 
 						//A compléter si on veux plus de nuances de couleurs avec les niveau 4,5,6,7,8 et 9
 					}
 					else
 					{
-						if($line->qty==99) print 'background:#ddffdd';
-						else if($line->qty==98) print 'background:#ddddff;';
+						if($line->qty==99) print 'background:#ddffdd';	// Sub-total level 1
+						else if($line->qty==98) print 'background:#ddddff;';	// Sub-total level 2
 						else if($line->qty==2) print 'background:#eeeeff; ';
-						else if($line->qty==50) print '';
-						else print 'background:#eeffee;' ;
+						else if($line->qty==50) print '';	// Free text
+						else print 'background:#eeffee;' ;	// title level 1 and 3 to 9
 					}
 
 			?>;">
@@ -3457,28 +3476,39 @@ class ActionsSubtotal
 
 			// HTML 5 data for js
 			$data = $this->_getHtmlData($parameters, $object, $action, $hookmanager);
+			// InfraS add begin
+			$class													= '';
+			if (!empty($conf->global->SUBTOTAL_USE_NEW_FORMAT))		$class	.= ' newSubtotal';
+			if ($line->qty == 1)									$class	.= ' subtitleLevel1';	// Title level 1
+			elseif ($line->qty == 2)								$class	.= ' subtitleLevel2';	// Title level 2
+			elseif ($line->qty > 2 && $line->qty < 10)				$class	.= ' subtitleLevel3to9';	// Sub-total level 3 to 9
+			elseif ($line->qty == 99)								$class	.= ' subtotalLevel1';	// Sub-total level 1
+			elseif ($line->qty == 98)								$class	.= ' subtotalLevel2';	// Sub-total level 2
+			elseif ($line->qty > 90 && $line->qty < 98)				$class	.= ' subtotalLevel3to9';	// Sub-total level 3 to 9
+			elseif ($line->qty == 50)								$class	.= ' subtotalText';	// Free text
+			// InfraS add end
 			?>
 			<!-- actions_subtotal.class.php line <?php echo __LINE__; ?> -->
-			<tr class="oddeven" <?php echo $data; ?> rel="subtotal" id="row-<?php echo $line->id ?>" style="<?php
+			<tr class="oddeven<?php echo $class; ?>" <?php echo $data; ?> rel="subtotal" id="row-<?php echo $line->id ?>" style="<?php
 					if (!empty($conf->global->SUBTOTAL_USE_NEW_FORMAT))
 					{
-						if($line->qty==99) print 'background:#adadcf';
-						else if($line->qty==98) print 'background:#ddddff;';
-						else if($line->qty<=97 && $line->qty>=91) print 'background:#eeeeff;';
-						else if($line->qty==1) print 'background:#adadcf;';
-						else if($line->qty==2) print 'background:#ddddff;';
-						else if($line->qty==50) print '';
-						else print 'background:#eeeeff;';
+						if($line->qty==99) print 'background:#adadcf';	// Sub-total level 1
+						else if($line->qty==98) print 'background:#ddddff;';	// Sub-total level 2
+						else if($line->qty<=97 && $line->qty>=91) print 'background:#eeeeff;';	// Sub-total level 3 to 9
+						else if($line->qty==1) print 'background:#adadcf;';	// Title level 1
+						else if($line->qty==2) print 'background:#ddddff;';	// Title level 2
+						else if($line->qty==50) print '';	// Free text
+						else print 'background:#eeeeff;';	// Title level 3 to 9
 
 						//A compléter si on veux plus de nuances de couleurs avec les niveau 4,5,6,7,8 et 9
 					}
 					else
 					{
-						if($line->qty==99) print 'background:#ddffdd';
-						else if($line->qty==98) print 'background:#ddddff;';
-						else if($line->qty==2) print 'background:#eeeeff; ';
-						else if($line->qty==50) print '';
-						else print 'background:#eeffee;' ;
+						if($line->qty==99) print 'background:#ddffdd';	// Sub-total level 1
+						else if($line->qty==98) print 'background:#ddddff;';	// Sub-total level 2
+						else if($line->qty==2) print 'background:#eeeeff; ';	// Title level 2
+						else if($line->qty==50) print '';	// Free text
+						else print 'background:#eeffee;' ;	// Title level 1, Sub-total level 1 and 3 to 9
 					}
 
 			?>;">
@@ -3617,23 +3647,23 @@ class ActionsSubtotal
 				$object->tpl['sub-tr-style'] = '';
 				if (!empty($conf->global->SUBTOTAL_USE_NEW_FORMAT))
 				{
-					if($line->qty==99) $object->tpl['sub-tr-style'].= 'background:#adadcf';
-					else if($line->qty==98) $object->tpl['sub-tr-style'].= 'background:#ddddff;';
-					else if($line->qty<=97 && $line->qty>=91) $object->tpl['sub-tr-style'].= 'background:#eeeeff;';
-					else if($line->qty==1) $object->tpl['sub-tr-style'].= 'background:#adadcf;';
-					else if($line->qty==2) $object->tpl['sub-tr-style'].= 'background:#ddddff;';
-					else if($line->qty==50) $object->tpl['sub-tr-style'].= '';
-					else $object->tpl['sub-tr-style'].= 'background:#eeeeff;';
+					if($line->qty==99) $object->tpl['sub-tr-style'].= 'background:#adadcf';	// Sub-total level 1
+					else if($line->qty==98) $object->tpl['sub-tr-style'].= 'background:#ddddff;';	// Sub-total level 2
+					else if($line->qty<=97 && $line->qty>=91) $object->tpl['sub-tr-style'].= 'background:#eeeeff;';	// Sub-total level 3 to 9
+					else if($line->qty==1) $object->tpl['sub-tr-style'].= 'background:#adadcf;';	// Title level 1
+					else if($line->qty==2) $object->tpl['sub-tr-style'].= 'background:#ddddff;';	// Title level 2
+					else if($line->qty==50) $object->tpl['sub-tr-style'].= '';	// Free text
+					else $object->tpl['sub-tr-style'].= 'background:#eeeeff;';	// Sub-total level 1 and 3 to 9
 
 					//A compléter si on veux plus de nuances de couleurs avec les niveau 4,5,6,7,8 et 9
 				}
 				else
 				{
-					if($line->qty==99) $object->tpl['sub-tr-style'].= 'background:#ddffdd';
-					else if($line->qty==98) $object->tpl['sub-tr-style'].= 'background:#ddddff;';
-					else if($line->qty==2) $object->tpl['sub-tr-style'].= 'background:#eeeeff; ';
-					else if($line->qty==50) $object->tpl['sub-tr-style'].= '';
-					else $object->tpl['sub-tr-style'].= 'background:#eeffee;' ;
+					if($line->qty==99) $object->tpl['sub-tr-style'].= 'background:#ddffdd';	// Sub-total level 1
+					else if($line->qty==98) $object->tpl['sub-tr-style'].= 'background:#ddddff;';	// Sub-total level 2
+					else if($line->qty==2) $object->tpl['sub-tr-style'].= 'background:#eeeeff; ';	// Title level 2
+					else if($line->qty==50) $object->tpl['sub-tr-style'].= '';	// Free text
+					else $object->tpl['sub-tr-style'].= 'background:#eeffee;' ;	// Title level 1, Sub-total level 1 and 3 to 9
 				}
 
 
@@ -4646,6 +4676,6 @@ class ActionsSubtotal
 
 				<?php
 			}
-
+		return 0;	// InfraS add
 	}
 }
