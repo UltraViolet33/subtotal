@@ -1095,6 +1095,7 @@ class ActionsSubtotal
 		$total_tva = 0;
 		$total_ttc = 0;
 		$TTotal_tva = array();
+		$TTotal_tva_array = array();	// InfraS add
 
 
 		$sign=1;
@@ -1158,22 +1159,33 @@ class ActionsSubtotal
                 }
                 else
                 {
-			if ($l->product_type != 9) {
-                    		$total += $l->total_ht;
-                    		$total_tva += $l->total_tva;
+					if ($l->product_type != 9) {
+									$total += $l->total_ht;
+									$total_tva += $l->total_tva;
 
-                            if(! isset($TTotal_tva[$l->tva_tx])) {
-                                $TTotal_tva[$l->tva_tx] = 0;
-                            }
-                    		$TTotal_tva[$l->tva_tx] += $l->total_tva;
+									if(! isset($TTotal_tva[$l->tva_tx])) {
+										$TTotal_tva[$l->tva_tx] = 0;
+									}
+									$TTotal_tva[$l->tva_tx] += $l->total_tva;
 
-                    		$total_ttc += $l->total_ttc;
-			}
+									$total_ttc += $l->total_ttc;
+									// InfraS add begin
+									$vatrate = (string) $l->tva_tx;
+									if (($l->info_bits & 0x01) == 0x01) {
+										$vatrate .= '*';
+									}
+									$vatcode = $l->vat_src_code;
+									if (empty($TTotal_tva_array[$vatrate.($vatcode ? ' ('.$vatcode.')' : '')]['amount'])) {
+										$TTotal_tva_array[$vatrate.($vatcode ? ' ('.$vatcode.')' : '')]['amount'] = 0;
+									}
+									$TTotal_tva_array[$vatrate.($vatcode ? ' ('.$vatcode.')' : '')] = array('vatrate' => $vatrate, 'vatcode' => $vatcode, 'amount' => $TTotal_tva_array[$vatrate.($vatcode ? ' ('.$vatcode.')' : '')]['amount'] + $l->total_tva, 'base' => $total);
+									// InfraS add end
+					}
                 }
             }
 		}
 		if (!$return_all) return $total;
-		else return array($total, $total_tva, $total_ttc, $TTotal_tva);
+		else return array($total, $total_tva, $total_ttc, $TTotal_tva, $TTotal_tva_array);	// InfraS change
 	}
 
 	/**
@@ -2255,192 +2267,197 @@ class ActionsSubtotal
 
 		$TContext	= explode(':', $parameters['context']);	// InfraS add
 		if (in_array('propalcard', $TContext) || in_array('ordercard', $TContext) || in_array('invoicecard', $TContext) || in_array('supplier_proposalcard', $TContext) || in_array('ordersuppliercard', $TContext) || in_array('invoicesuppliercard', $TContext)) {	// InfraS add
-		// for compatibility dolibarr < 15
-		if(!empty($object->context)){ $object->context = array(); }
-		$object->context['subtotalPdfModelInfo'] = new stdClass(); // see defineColumnFiel method in this class
-		$object->context['subtotalPdfModelInfo']->cols = false;
+			// for compatibility dolibarr < 15
+			if(!empty($object->context)){ $object->context = array(); }
+			$object->context['subtotalPdfModelInfo'] = new stdClass(); // see defineColumnFiel method in this class
+			$object->context['subtotalPdfModelInfo']->cols = false;
 
 
 
-		// var_dump($object->lines);
-		dol_include_once('/subtotal/class/subtotal.class.php');
+			// var_dump($object->lines);
+			dol_include_once('/subtotal/class/subtotal.class.php');
 
-        $i = 0;
-        if(isset($parameters['i'])) {
-            $i = $parameters['i'];
-        }
-
-		foreach($parameters as $key=>$value) {
-			${$key} = $value;
-		}
-
-		$this->setDocTVA($pdf, $object);
-
-		$this->add_numerotation($object);
-
-        foreach($object->lines as $k => &$l) {
-            if(TSubtotal::isSubtotal($l)) {
-                $parentTitle = TSubtotal::getParentTitleOfLine($object, $l->rang);
-                if(is_object($parentTitle) && empty($parentTitle->array_options)) $parentTitle->fetch_optionals();
-                if(! empty($parentTitle->id) && ! empty($parentTitle->array_options['options_show_reduc'])) {
-                    $l->remise_percent = 100;    // Affichage de la réduction sur la ligne de sous-total
-                }
-            }
-
-
-            // Pas de hook sur les colonnes du PDF expédition, on unset les bonnes variables
-            if(($object->element == 'shipping' || $object->element == 'delivery') && $this->isModSubtotalLine($k, $object))
-			{
-				$l->qty = $l->qty_asked;
-				unset($l->qty_asked, $l->qty_shipped, $l->volume, $l->weight);
+			$i = 0;
+			if(isset($parameters['i'])) {
+				$i = $parameters['i'];
 			}
-        }
 
-		$hideInnerLines = GETPOST('hideInnerLines', 'int');
-		$hidedetails = GETPOST('hidedetails', 'int');
+			foreach($parameters as $key=>$value) {
+				${$key} = $value;
+			}
 
-		if ($hideInnerLines) { // si c une ligne de titre
-	    	$fk_parent_line=0;
-			$TLines =array();
+			$this->setDocTVA($pdf, $object);
 
-			$original_count=count($object->lines);
-		    $TTvas = array(); // tableau de tva
+			$this->add_numerotation($object);
 
-			foreach($object->lines as $k=>&$line)
-			{
-                // to keep compatibility with supplier order and old versions (rowid was replaced with id in fetch lines method)
-                if ($line->id > 0) {
-                    $line->rowid = $line->id;
-                }
-
-				if($line->product_type==9 && $line->rowid>0)
-				{
-					$fk_parent_line = $line->rowid;
-
-					// Fix tk7201 - si on cache le détail, la TVA est renseigné au niveau du sous-total, l'erreur c'est s'il y a plusieurs sous-totaux pour les même lignes, ça va faire la somme
-					if(TSubtotal::isSubtotal($line))
-					{
-						/*$total = $this->getTotalLineFromObject($object, $line, '');
-
-						$line->total_ht = $total;
-						$line->total = $total;
-						*/
-						//list($total, $total_tva, $total_ttc, $TTotal_tva) = $this->getTotalLineFromObject($object, $line, '', 1);
-
-						$TInfo = $this->getTotalLineFromObject($object, $line, '', 1);
-
-						if (TSubtotal::getNiveau($line) == 1) $line->TTotal_tva = $TInfo[3];
-						$line->total_ht = $TInfo[0];
-						$line->total_tva = $TInfo[1];
-						$line->total = $line->total_ht;
-						$line->total_ttc = $TInfo[2];
-
-//                        $TTitle = TSubtotal::getParentTitleOfLine($object, $line->rang);
-//                        $parentTitle = array_shift($TTitle);
-//                        if(! empty($parentTitle->id) && ! empty($parentTitle->array_option['options_show_total_ht'])) {
-//                            exit('la?');
-//                            $line->remise_percent = 100;    // Affichage de la réduction sur la ligne de sous-total
-//                            $line->update();
-//                        }
+			foreach($object->lines as $k => &$l) {
+				if(TSubtotal::isSubtotal($l)) {
+					$parentTitle = TSubtotal::getParentTitleOfLine($object, $l->rang);
+					if(is_object($parentTitle) && empty($parentTitle->array_options)) $parentTitle->fetch_optionals();
+					if(! empty($parentTitle->id) && ! empty($parentTitle->array_options['options_show_reduc'])) {
+						$l->remise_percent = 100;    // Affichage de la réduction sur la ligne de sous-total
 					}
-//                    if(TSub)
-
 				}
 
-				if ($hideInnerLines)
+
+				// Pas de hook sur les colonnes du PDF expédition, on unset les bonnes variables
+				if(($object->element == 'shipping' || $object->element == 'delivery') && $this->isModSubtotalLine($k, $object))
 				{
-				    if(!empty($conf->global->SUBTOTAL_REPLACE_WITH_VAT_IF_HIDE_INNERLINES))
-				    {
-				        if($line->tva_tx != '0.000' && $line->product_type!=9){
-
-    				        // on remplit le tableau de tva pour substituer les lignes cachées
-    				        $TTvas[$line->tva_tx]['total_tva'] += $line->total_tva;
-    				        $TTvas[$line->tva_tx]['total_ht'] += $line->total_ht;
-    				        $TTvas[$line->tva_tx]['total_ttc'] += $line->total_ttc;
-    				    }
-    					if($line->product_type==9 && $line->rowid>0)
-    					{
-    					    //Cas où je doit cacher les produits et afficher uniquement les sous-totaux avec les titres
-    					    // génère des lignes d'affichage des montants HT soumis à tva
-    					    $nbtva = count($TTvas);
-    					    if(!empty($nbtva)){
-    					        foreach ($TTvas as $tx =>$val){
-    					            $l = clone $line;
-    					            $l->product_type = 1;
-    					            $l->special_code = '';
-    					            $l->qty = 1;
-    					            $l->desc = $langs->trans('AmountBeforeTaxesSubjectToVATX%', $langs->transnoentitiesnoconv('VAT'), price($tx));
-    					            $l->tva_tx = $tx;
-    					            $l->total_ht = $val['total_ht'];
-    					            $l->total_tva = $val['total_tva'];
-    					            $l->total = $line->total_ht;
-    					            $l->total_ttc = $val['total_ttc'];
-    					            $TLines[] = $l;
-    					            array_shift($TTvas);
-    					       }
-    					    }
-
-    					    // ajoute la ligne de sous-total
-    					    $TLines[] = $line;
-    					}
-				    } else {
-
-				        if($line->product_type==9 && $line->rowid>0)
-				        {
-				            // ajoute la ligne de sous-total
-				            $TLines[] = $line;
-				        }
-				    }
-
-
+					$l->qty = $l->qty_asked;
+					unset($l->qty_asked, $l->qty_shipped, $l->volume, $l->weight);
 				}
-				elseif ($hidedetails)
+			}
+
+			$hideInnerLines = GETPOST('hideInnerLines', 'int');
+			$hidedetails = GETPOST('hidedetails', 'int');
+
+			if ($hideInnerLines) { // si c une ligne de titre
+				$fk_parent_line=0;
+				$TLines =array();
+
+				$original_count=count($object->lines);
+				$TTvas = array(); // tableau de tva
+
+				foreach($object->lines as $k=>&$line)
 				{
-					$TLines[] = $line; //Cas où je cache uniquement les prix des produits
+					// to keep compatibility with supplier order and old versions (rowid was replaced with id in fetch lines method)
+					if ($line->id > 0) {
+						$line->rowid = $line->id;
+					}
+
+					if($line->product_type==9 && $line->rowid>0)
+					{
+						$fk_parent_line = $line->rowid;
+
+						// Fix tk7201 - si on cache le détail, la TVA est renseigné au niveau du sous-total, l'erreur c'est s'il y a plusieurs sous-totaux pour les même lignes, ça va faire la somme
+						if(TSubtotal::isSubtotal($line))
+						{
+							/*$total = $this->getTotalLineFromObject($object, $line, '');
+
+							$line->total_ht = $total;
+							$line->total = $total;
+							*/
+							//list($total, $total_tva, $total_ttc, $TTotal_tva) = $this->getTotalLineFromObject($object, $line, '', 1);
+
+							$TInfo = $this->getTotalLineFromObject($object, $line, '', 1);
+
+							if (TSubtotal::getNiveau($line) == 1) {	// InfraS change
+								// InfraS add begin
+								$line->TTotal_tva = $TInfo[3];
+								$line->TTotal_tva_array = $TInfo[4];
+							}
+							// InfraS add end
+							$line->total_ht = $TInfo[0];
+							$line->total_tva = $TInfo[1];
+							$line->total = $line->total_ht;
+							$line->total_ttc = $TInfo[2];
+
+	//                        $TTitle = TSubtotal::getParentTitleOfLine($object, $line->rang);
+	//                        $parentTitle = array_shift($TTitle);
+	//                        if(! empty($parentTitle->id) && ! empty($parentTitle->array_option['options_show_total_ht'])) {
+	//                            exit('la?');
+	//                            $line->remise_percent = 100;    // Affichage de la réduction sur la ligne de sous-total
+	//                            $line->update();
+	//                        }
+						}
+	//                    if(TSub)
+
+					}
+
+					if ($hideInnerLines)
+					{
+						if(!empty($conf->global->SUBTOTAL_REPLACE_WITH_VAT_IF_HIDE_INNERLINES))
+						{
+							if($line->tva_tx != '0.000' && $line->product_type!=9){
+
+								// on remplit le tableau de tva pour substituer les lignes cachées
+								$TTvas[$line->tva_tx]['total_tva'] += $line->total_tva;
+								$TTvas[$line->tva_tx]['total_ht'] += $line->total_ht;
+								$TTvas[$line->tva_tx]['total_ttc'] += $line->total_ttc;
+							}
+							if($line->product_type==9 && $line->rowid>0)
+							{
+								//Cas où je doit cacher les produits et afficher uniquement les sous-totaux avec les titres
+								// génère des lignes d'affichage des montants HT soumis à tva
+								$nbtva = count($TTvas);
+								if(!empty($nbtva)){
+									foreach ($TTvas as $tx =>$val){
+										$l = clone $line;
+										$l->product_type = 1;
+										$l->special_code = '';
+										$l->qty = 1;
+										$l->desc = $langs->trans('AmountBeforeTaxesSubjectToVATX%', $langs->transnoentitiesnoconv('VAT'), price($tx));
+										$l->tva_tx = $tx;
+										$l->total_ht = $val['total_ht'];
+										$l->total_tva = $val['total_tva'];
+										$l->total = $line->total_ht;
+										$l->total_ttc = $val['total_ttc'];
+										$TLines[] = $l;
+										array_shift($TTvas);
+								   }
+								}
+
+								// ajoute la ligne de sous-total
+								$TLines[] = $line;
+							}
+						} else {
+
+							if($line->product_type==9 && $line->rowid>0)
+							{
+								// ajoute la ligne de sous-total
+								$TLines[] = $line;
+							}
+						}
+
+
+					}
+					elseif ($hidedetails)
+					{
+						$TLines[] = $line; //Cas où je cache uniquement les prix des produits
+					}
+
+					if ($line->product_type != 9) { // jusqu'au prochain titre ou total
+						//$line->fk_parent_line = $fk_parent_line;
+
+					}
+
+					/*if($hideTotal) {
+						$line->total = 0;
+						$line->subprice= 0;
+					}*/
+
 				}
 
-				if ($line->product_type != 9) { // jusqu'au prochain titre ou total
-					//$line->fk_parent_line = $fk_parent_line;
-
+				// cas incongru où il y aurait des produits en dessous du dernier sous-total
+				$nbtva = count($TTvas);
+				if(!empty($nbtva) && $hideInnerLines && !empty($conf->global->SUBTOTAL_REPLACE_WITH_VAT_IF_HIDE_INNERLINES))
+				{
+					foreach ($TTvas as $tx =>$val){
+						$l = clone $line;
+						$l->product_type = 1;
+						$l->special_code = '';
+						$l->qty = 1;
+						$l->desc = $langs->trans('AmountBeforeTaxesSubjectToVATX%', $langs->transnoentitiesnoconv('VAT'), price($tx));
+						$l->tva_tx = $tx;
+						$l->total_ht = $val['total_ht'];
+						$l->total_tva = $val['total_tva'];
+						$l->total = $line->total_ht;
+						$l->total_ttc = $val['total_ttc'];
+						$TLines[] = $l;
+						array_shift($TTvas);
+					}
 				}
 
-				/*if($hideTotal) {
-					$line->total = 0;
-					$line->subprice= 0;
-				}*/
+				global $nblignes;
+				$nblignes=count($TLines);
 
+				$object->lines = $TLines;
+
+				if($i>count($object->lines)) {
+					$this->resprints = '';
+					return 0;
+				}
 			}
-
-			// cas incongru où il y aurait des produits en dessous du dernier sous-total
-			$nbtva = count($TTvas);
-			if(!empty($nbtva) && $hideInnerLines && !empty($conf->global->SUBTOTAL_REPLACE_WITH_VAT_IF_HIDE_INNERLINES))
-			{
-			    foreach ($TTvas as $tx =>$val){
-			        $l = clone $line;
-			        $l->product_type = 1;
-			        $l->special_code = '';
-			        $l->qty = 1;
-			        $l->desc = $langs->trans('AmountBeforeTaxesSubjectToVATX%', $langs->transnoentitiesnoconv('VAT'), price($tx));
-			        $l->tva_tx = $tx;
-			        $l->total_ht = $val['total_ht'];
-			        $l->total_tva = $val['total_tva'];
-			        $l->total = $line->total_ht;
-			        $l->total_ttc = $val['total_ttc'];
-			        $TLines[] = $l;
-			        array_shift($TTvas);
-			    }
-			}
-
-			global $nblignes;
-			$nblignes=count($TLines);
-
-			$object->lines = $TLines;
-
-			if($i>count($object->lines)) {
-				$this->resprints = '';
-				return 0;
-			}
-	    }
 		} 	// InfraS add
 		return 0;
 	}
@@ -4215,7 +4232,9 @@ class ActionsSubtotal
 				elseif($TCurrentContexts[0] == 'invoice') $element = 'Facture';
 				elseif($TCurrentContexts[0] == 'invoicesupplier') $element = 'FactureFournisseur';
 				elseif($TCurrentContexts[0] == 'ordersupplier') $element = 'CommandeFournisseur';
+				elseif($TCurrentContexts[0] == 'invoicerec') $element = 'FactureRec';
 				else $element = $TCurrentContexts[0];
+
 				$object = new $element($db);
 				$object->fetch($id);
 
