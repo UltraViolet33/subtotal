@@ -656,7 +656,7 @@ if(!class_exists('FormSetup')){
 		public function saveConfValue()
 		{
 			if(!empty($this->saveCallBack) && is_callable($this->saveCallBack)){
-				return call_user_func($this->saveCallBack);
+				return call_user_func($this->saveCallBack, $this);	// InfraS change to fix fatal error on update params
 			}
 
 			// Modify constant only if key was posted (avoid resetting key to the null value)
