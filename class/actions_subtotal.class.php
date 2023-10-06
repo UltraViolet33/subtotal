@@ -2848,17 +2848,17 @@ class ActionsSubtotal
 
             // Prepare CSS class
             $class													= '';
-            if (!empty($conf->global->SUBTOTAL_USE_NEW_FORMAT))		$class	.= ' newSubtotal';
-            if ($line->qty == 1)									$class	.= ' subtitleLevel1';	// Title level 1
-            elseif ($line->qty == 2)								$class	.= ' subtitleLevel2';	// Title level 2
-            elseif ($line->qty > 2 && $line->qty < 10)				$class	.= ' subtitleLevel3to9';	// Sub-total level 3 to 9
-            elseif ($line->qty == 99)								$class	.= ' subtotalLevel1';	// Sub-total level 1
-            elseif ($line->qty == 98)								$class	.= ' subtotalLevel2';	// Sub-total level 2
-            elseif ($line->qty > 90 && $line->qty < 98)				$class	.= ' subtotalLevel3to9';	// Sub-total level 3 to 9
-            elseif ($line->qty == 50)								$class	.= ' subtotalText';      // Free text
+            if (!empty($conf->global->SUBTOTAL_USE_NEW_FORMAT))		$class	.= 'newSubtotal ';
+            if ($line->qty == 1)									$class	.= 'subtitleLevel1';	// Title level 1
+            elseif ($line->qty == 2)								$class	.= 'subtitleLevel2';	// Title level 2
+            elseif ($line->qty > 2 && $line->qty < 10)				$class	.= 'subtitleLevel3to9';	// Sub-total level 3 to 9
+            elseif ($line->qty == 99)								$class	.= 'subtotalLevel1';	// Sub-total level 1
+            elseif ($line->qty == 98)								$class	.= 'subtotalLevel2';	// Sub-total level 2
+            elseif ($line->qty > 90 && $line->qty < 98)				$class	.= 'subtotalLevel3to9';	// Sub-total level 3 to 9
+            elseif ($line->qty == 50)								$class	.= 'subtotalText';      // Free text
 			?>
 			<!-- actions_subtotal.class.php line <?php echo __LINE__; ?> -->
-			<tr class="oddeven<?php echo $class; ?>" <?php echo $data; ?> rel="subtotal" id="row-<?php echo $line->id ?>" style="<?php
+			<tr class="oddeven <?php echo $class; ?>" <?php echo $data; ?> rel="subtotal" id="row-<?php echo $line->id ?>" style="<?php
 					if (!empty($conf->global->SUBTOTAL_USE_NEW_FORMAT))
 					{
 						if($line->qty==99) print 'background:#adadcf';          // Sub-total level 1
@@ -3380,18 +3380,18 @@ class ActionsSubtotal
 			$data = $this->_getHtmlData($parameters, $object, $action, $hookmanager);
 
             $class													= '';
-            if (!empty($conf->global->SUBTOTAL_USE_NEW_FORMAT))		$class	.= ' newSubtotal';
-            if ($line->qty == 1)									$class	.= ' subtitleLevel1';	// Title level 1
-            elseif ($line->qty == 2)								$class	.= ' subtitleLevel2';	// Title level 2
-            elseif ($line->qty > 2 && $line->qty < 10)				$class	.= ' subtitleLevel3to9';	// Sub-total level 3 to 9
-            elseif ($line->qty == 99)								$class	.= ' subtotalLevel1';	// Sub-total level 1
-            elseif ($line->qty == 98)								$class	.= ' subtotalLevel2';	// Sub-total level 2
-            elseif ($line->qty > 90 && $line->qty < 98)				$class	.= ' subtotalLevel3to9';	// Sub-total level 3 to 9
-            elseif ($line->qty == 50)								$class	.= ' subtotalText';      // Free text
+            if (!empty($conf->global->SUBTOTAL_USE_NEW_FORMAT))		$class	.= 'newSubtotal ';
+            if ($line->qty == 1)									$class	.= 'subtitleLevel1';	// Title level 1
+            elseif ($line->qty == 2)								$class	.= 'subtitleLevel2';	// Title level 2
+            elseif ($line->qty > 2 && $line->qty < 10)				$class	.= 'subtitleLevel3to9';	// Sub-total level 3 to 9
+            elseif ($line->qty == 99)								$class	.= 'subtotalLevel1';	// Sub-total level 1
+            elseif ($line->qty == 98)								$class	.= 'subtotalLevel2';	// Sub-total level 2
+            elseif ($line->qty > 90 && $line->qty < 98)				$class	.= 'subtotalLevel3to9';	// Sub-total level 3 to 9
+            elseif ($line->qty == 50)								$class	.= 'subtotalText';      // Free text
 ?>
 
 			<!-- actions_subtotal.class.php line <?php echo __LINE__; ?> -->
-			<tr class="oddeven<?php echo $class; ?>" <?php echo $data; ?> rel="subtotal" id="row-<?php echo $line->id ?>" style="<?php
+			<tr class="oddeven <?php echo $class; ?>" <?php echo $data; ?> rel="subtotal" id="row-<?php echo $line->id ?>" style="<?php
 					if (!empty($conf->global->SUBTOTAL_USE_NEW_FORMAT))
 					{
                         if($line->qty==99) print 'background:#adadcf';          // Sub-total level 1
@@ -3506,17 +3506,17 @@ class ActionsSubtotal
 			$data = $this->_getHtmlData($parameters, $object, $action, $hookmanager);
 
             $class													= '';
-            if (!empty($conf->global->SUBTOTAL_USE_NEW_FORMAT))		$class	.= ' newSubtotal';
-            if ($line->qty == 1)									$class	.= ' subtitleLevel1';	// Title level 1
-            elseif ($line->qty == 2)								$class	.= ' subtitleLevel2';	// Title level 2
-            elseif ($line->qty > 2 && $line->qty < 10)				$class	.= ' subtitleLevel3to9';	// Sub-total level 3 to 9
-            elseif ($line->qty == 99)								$class	.= ' subtotalLevel1';	// Sub-total level 1
-            elseif ($line->qty == 98)								$class	.= ' subtotalLevel2';	// Sub-total level 2
-            elseif ($line->qty > 90 && $line->qty < 98)				$class	.= ' subtotalLevel3to9';	// Sub-total level 3 to 9
-            elseif ($line->qty == 50)								$class	.= ' subtotalText';      // Free text
+            if (!empty($conf->global->SUBTOTAL_USE_NEW_FORMAT))		$class	.= 'newSubtotal ';
+            if ($line->qty == 1)									$class	.= 'subtitleLevel1';	// Title level 1
+            elseif ($line->qty == 2)								$class	.= 'subtitleLevel2';	// Title level 2
+            elseif ($line->qty > 2 && $line->qty < 10)				$class	.= 'subtitleLevel3to9';	// Sub-total level 3 to 9
+            elseif ($line->qty == 99)								$class	.= 'subtotalLevel1';	// Sub-total level 1
+            elseif ($line->qty == 98)								$class	.= 'subtotalLevel2';	// Sub-total level 2
+            elseif ($line->qty > 90 && $line->qty < 98)				$class	.= 'subtotalLevel3to9';	// Sub-total level 3 to 9
+            elseif ($line->qty == 50)								$class	.= 'subtotalText';      // Free text
 			?>
 			<!-- actions_subtotal.class.php line <?php echo __LINE__; ?> -->
-			<tr class="oddeven<?php echo $class; ?>" <?php echo $data; ?> rel="subtotal" id="row-<?php echo $line->id ?>" style="<?php
+			<tr class="oddeven <?php echo $class; ?>" <?php echo $data; ?> rel="subtotal" id="row-<?php echo $line->id ?>" style="<?php
 					if (!empty($conf->global->SUBTOTAL_USE_NEW_FORMAT))
 					{
                         if($line->qty==99) print 'background:#adadcf';          // Sub-total level 1
