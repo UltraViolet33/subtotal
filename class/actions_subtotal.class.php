@@ -7,6 +7,17 @@ include_once DOL_DOCUMENT_ROOT.'/comm/propal/class/propal.class.php';
 
 class ActionsSubtotal
 {
+
+	/**
+	 * @var string $error
+	 */
+	public $error;
+
+	/**
+	 * @var array $errors
+	 */
+	public $errors = array();
+
     /**
      * @var int Subtotal current level
      */
@@ -2837,7 +2848,7 @@ class ActionsSubtotal
 
             // Prepare CSS class
             $class													= '';
-            if (!empty($conf->global->SUBTOTAL_USE_NEW_FORMAT))		$class	.= 'newSubtotal';
+            if (!empty($conf->global->SUBTOTAL_USE_NEW_FORMAT))		$class	.= 'newSubtotal ';
             if ($line->qty == 1)									$class	.= 'subtitleLevel1';	// Title level 1
             elseif ($line->qty == 2)								$class	.= 'subtitleLevel2';	// Title level 2
             elseif ($line->qty > 2 && $line->qty < 10)				$class	.= 'subtitleLevel3to9';	// Sub-total level 3 to 9
@@ -3045,7 +3056,7 @@ class ActionsSubtotal
 					}
 					else {
 
-				    if(TSubtotal::isSubtotal($line) && $conf->global->DISPLAY_MARGIN_ON_SUBTOTALS) {
+				    if(TSubtotal::isSubtotal($line) && !empty($conf->global->DISPLAY_MARGIN_ON_SUBTOTALS)) {
 						$colspan -= 2;
 
 						if (!empty($conf->global->SUBTOTAL_TITLE_STYLE)) $style = $conf->global->SUBTOTAL_TITLE_STYLE;
@@ -3091,7 +3102,7 @@ class ActionsSubtotal
                         $style = TSubtotal::isFreeText($line) ? '' : 'font-weight:bold;';
                         $style.= $line->qty>90 ? 'text-align:right' : '';
 
-                        echo '<td '. (!TSubtotal::isSubtotal($line) || !$conf->global->DISPLAY_MARGIN_ON_SUBTOTALS ? ' colspan="'.$colspan.'"' : '' ).' style="' .$style.'">';
+                        echo '<td '. (!TSubtotal::isSubtotal($line) || empty($conf->global->DISPLAY_MARGIN_ON_SUBTOTALS) ? ' colspan="'.$colspan.'"' : '' ).' style="' .$style.'">';
 						 if (!empty($conf->global->SUBTOTAL_USE_NEW_FORMAT))
 						 {
 							if(TSubtotal::isTitle($line) || TSubtotal::isSubtotal($line))
@@ -3132,18 +3143,18 @@ class ActionsSubtotal
 						 }
 						if (TSubtotal::isTitle($line)) {
 							//Folder for expand
-							$titleAttr = ($line->array_options['options_hideblock'] == 1) ? $langs->trans("Subtotal_Show") : $langs->trans("Subtotal_Hide");
+							$titleAttr = (array_key_exists('options_hideblock', $line->array_options) && $line->array_options['options_hideblock'] == 1) ? $langs->trans("Subtotal_Show") : $langs->trans("Subtotal_Hide");
 
 							print '<span class="fold-subtotal-container" >';
 
 							// bouton pour ouvrir/fermer le bloc
 							print ' <span title="'.dol_escape_htmltag($titleAttr).'" class="fold-subtotal-btn" data-toggle-all-children="0" data-title-line-target="' . $line->id . '" id="collapse-' . $line->id . '" >';
-							print (($line->array_options['options_hideblock'] == 1) ? img_picto('', 'folder') : img_picto('', 'folder-open'));
+							print ((array_key_exists('options_hideblock', $line->array_options) && $line->array_options['options_hideblock'] == 1) ? img_picto('', 'folder') : img_picto('', 'folder-open'));
 							print '</span>';
 
 							// Bouton pour ouvrir/fermer aussi les enfants
 							print ' <span title="'.dol_escape_htmltag($titleAttr).'" class="fold-subtotal-btn" data-toggle-all-children="1" data-title-line-target="' . $line->id . '" id="collapse-children-' . $line->id . '" >';
-							print (($line->array_options['options_hideblock'] == 1) ? img_picto('', 'folder') : img_picto('', 'folder-open'));
+							print ((array_key_exists('options_hideblock', $line->array_options) && $line->array_options['options_hideblock'] == 1) ? img_picto('', 'folder') : img_picto('', 'folder-open'));
 							print '</span>';
 
 							// un span pour contenir des infos comme le nombre de lignes cachées etc...
@@ -3369,7 +3380,7 @@ class ActionsSubtotal
 			$data = $this->_getHtmlData($parameters, $object, $action, $hookmanager);
 
             $class													= '';
-            if (!empty($conf->global->SUBTOTAL_USE_NEW_FORMAT))		$class	.= 'newSubtotal';
+            if (!empty($conf->global->SUBTOTAL_USE_NEW_FORMAT))		$class	.= 'newSubtotal ';
             if ($line->qty == 1)									$class	.= 'subtitleLevel1';	// Title level 1
             elseif ($line->qty == 2)								$class	.= 'subtitleLevel2';	// Title level 2
             elseif ($line->qty > 2 && $line->qty < 10)				$class	.= 'subtitleLevel3to9';	// Sub-total level 3 to 9
@@ -3495,7 +3506,7 @@ class ActionsSubtotal
 			$data = $this->_getHtmlData($parameters, $object, $action, $hookmanager);
 
             $class													= '';
-            if (!empty($conf->global->SUBTOTAL_USE_NEW_FORMAT))		$class	.= 'newSubtotal';
+            if (!empty($conf->global->SUBTOTAL_USE_NEW_FORMAT))		$class	.= 'newSubtotal ';
             if ($line->qty == 1)									$class	.= 'subtitleLevel1';	// Title level 1
             elseif ($line->qty == 2)								$class	.= 'subtitleLevel2';	// Title level 2
             elseif ($line->qty > 2 && $line->qty < 10)				$class	.= 'subtitleLevel3to9';	// Sub-total level 3 to 9
@@ -4206,7 +4217,7 @@ class ActionsSubtotal
         return 0;
     }
 
-	public function printCommonFooter(&$parameters, &$object, &$action, $hookmanager)
+	public function printCommonFooter(&$parameters, &$objectHook, &$action, $hookmanager)
 	{
 			global $langs, $db, $conf;
 
@@ -4228,12 +4239,41 @@ class ActionsSubtotal
 
 				//On détermine l'élement concernée en fonction du contexte
 				$TCurrentContexts = explode('card', $parameters['currentcontext']);
-				if($TCurrentContexts[0] == 'order') $element = 'Commande';
-				elseif($TCurrentContexts[0] == 'invoice') $element = 'Facture';
-				elseif($TCurrentContexts[0] == 'invoicesupplier') $element = 'FactureFournisseur';
-				elseif($TCurrentContexts[0] == 'ordersupplier') $element = 'CommandeFournisseur';
-				elseif($TCurrentContexts[0] == 'invoicerec') $element = 'FactureRec';
+				/**
+				 *  TODO John le 11/08/2023 : Je trouve bizarre d'utiliser le contexte pour déterminer la class de l'objet alors
+				 *    que l'objet est passé en paramètres ça doit être due à de vielle versions de Dolibarr ou une compat avec un module externe...
+				 *    Cette methode de chargement d'objet a causée une fatale car la classe de l'objet correspondant au contexte n'était pas chargé ce qui n'est pas logique...
+				 *    La logique voudrait que l'on utilise $object->element
+				 *    Cependant si on regarde plus loin $object qui est passé en référence dans les paramètres de cette méthode est remplacé quelques lignes plus bas.
+				 */
+				if($TCurrentContexts[0] == 'order'){
+					$element = 'Commande';
+					if(!class_exists($element)){ require_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';}
+				}
+				elseif($TCurrentContexts[0] == 'invoice'){
+					$element = 'Facture';
+					if(!class_exists($element)){ require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';}
+				}
+				elseif($TCurrentContexts[0] == 'invoicesupplier'){
+					$element = 'FactureFournisseur';
+					if(!class_exists($element)){ require_once DOL_DOCUMENT_ROOT . '/fourn/class/fournisseur.facture.class.php';}
+				}
+				elseif($TCurrentContexts[0] == 'ordersupplier'){
+					$element = 'CommandeFournisseur';
+					if(!class_exists($element)){ require_once DOL_DOCUMENT_ROOT . '/fourn/class/fournisseur.commande.class.php';}
+				}
+				elseif($TCurrentContexts[0] == 'invoicerec'){
+					$element = 'FactureRec';
+					if(!class_exists($element)){ require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture-rec.class.php';}
+				}
 				else $element = $TCurrentContexts[0];
+
+
+				if(!class_exists($element)){
+					// Pour éviter la fatale sur une page d'un module externe qui utiliserait un nom de context de Dolibarr mais qui
+					$this->error = $langs->trans('ErrorClassXNotExists', $element);
+					return -1;
+				}
 
 				$object = new $element($db);
 				$object->fetch($id);
@@ -4245,7 +4285,7 @@ class ActionsSubtotal
 				if(!empty($TLines)) {
 					$TBlocksToHide = array();
 					foreach ($TLines as $line) {
-						if ($line->array_options['options_hideblock']) $TBlocksToHide[] = $line->id;
+						if (array_key_exists('options_hideblock', $line->array_options) && $line->array_options['options_hideblock']) $TBlocksToHide[] = $line->id;
 					}
 				}
 
