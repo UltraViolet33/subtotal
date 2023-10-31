@@ -369,6 +369,7 @@ if(!in_array($action, array('edit', 'update')) || (float)DOL_VERSION < 17) {
 
 
 
+
 /*
  * Actions
  */
