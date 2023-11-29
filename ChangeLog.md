@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file.
 
 # [Unreleased]
 
+- FIX : colum in card if global 'MAIN_NO_INPUT_PRICE_WITH_TAX' is enable
 - FIX : js error when summary menu is disabled - *06/10/2023* - 3.23.2
 - FIX : css break due to incompatible conf - *06/10/2023* - 3.23.1
 - FIX : page break issue from PR #271, #292 & #328 - *19/07/2023* - 3.23.0  
@@ -11,6 +12,7 @@ All notable changes to this project will be documented in this file.
 
 # Version 3.22 - 19/07/2023
 
+- HOTFIX : must be greater than 0 fatal - *22/11/2023* - 3.22.5
 - FIX : DA024057 - Anomalie PDF lors de l'activation conf "Remplacer par le détail des TVA si l'option "Cacher le détail des ensembles" est utilisée (expérimental)" - *16/11/2023* - 3.22.4
 - FIX : PHP8 warnings - *07/09/2023* - 3.22.3
 - FIX : Fatal error au recurring invoices - *28/08/2023* - 3.22.2
