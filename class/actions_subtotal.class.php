@@ -5,7 +5,7 @@ require_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/functions.lib.php';
 include_once DOL_DOCUMENT_ROOT.'/comm/propal/class/propal.class.php';
 require_once __DIR__ . '/../backport/v19/core/class/commonhookactions.class.php';
-
+if (!empty(isModEnabled('ouvrage')))	dol_include_once('/ouvrage/class/ouvrage.class.php');	// InfraS add
 
 class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 {
@@ -494,32 +494,29 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 	            $hidedetails	= isset( $_SESSION['subtotal_hidedetails_'.$parameters['modulepart']][$object->id] ) ?  $_SESSION['subtotal_hidedetails_'.$parameters['modulepart']][$object->id] : 0;
 				$hidepricesDefaultConf = getDolGlobalString('SUBTOTAL_HIDE_PRICE_DEFAULT_CHECKED')?getDolGlobalString('SUBTOTAL_HIDE_PRICE_DEFAULT_CHECKED') :0;
 				$hideprices= isset( $_SESSION['subtotal_hideprices_'.$parameters['modulepart']][$object->id] ) ?  $_SESSION['subtotal_hideprices_'.$parameters['modulepart']][$object->id] : $hidepricesDefaultConf;
-
-				$var=false;
+				// InfraS change begin
+				$titleOptions	= $langs->trans('Subtotal_Options').'&nbsp;&nbsp;&nbsp;'.img_picto($langs->trans('Setup'), 'setup', 'style="vertical-align: bottom; height: 20px;"');
+				$titleStyle		= 'background: transparent !important; background-color: rgba(148, 148, 148, .065) !important; cursor: pointer;';
 				$out = '';
-		     	$out.= '<tr class="oddeven">
-		     			<td colspan="5" align="right">
-		     				<label for="hideInnerLines">'.$langs->trans('HideInnerLines').'</label>
-		     				<input type="checkbox" onclick="if($(this).is(\':checked\')) { $(\'#hidedetails\').prop(\'checked\', \'checked\')  }" id="hideInnerLines" name="hideInnerLines" value="1" '.(( $hideInnerLines ) ? 'checked="checked"' : '' ).' />
-		     			</td>
-		     			</tr>';
-
-		     	$out.= '<tr class="oddeven">
-		     			<td colspan="5" align="right">
-		     				<label for="hidedetails">'.$langs->trans('SubTotalhidedetails').'</label>
-		     				<input type="checkbox" id="hidedetails" name="hidedetails" value="1" '.(( $hidedetails ) ? 'checked="checked"' : '' ).' />
-		     			</td>
-		     			</tr>';
-
-		     	$out.= '<tr class="oddeven">
-		     			<td colspan="5" align="right">
-		     				<label for="hideprices">'.$langs->trans('SubTotalhidePrice').'</label>
-		     				<input type="checkbox" id="hideprices" name="hideprices" value="1" '.(( $hideprices ) ? 'checked="checked"' : '' ).' />
-		     			</td>
-		     			</tr>';
-
-
-
+		     	$out.= '		<tr class = "subtotalfold" style = "'.$titleStyle.'"><td colspan = "5" align = "center" style = "font-size: 120%;">'.$titleOptions.'</td></tr>
+								<tr class = "oddeven subtotalfoldable">
+									<td colspan = "5" class = "right">
+										<label for = "hideInnerLines">'.$langs->trans('HideInnerLines').'</label>
+										<input type = "checkbox" onclick="if($(this).is(\':checked\')) { $(\'#hidedetails\').prop(\'checked\', \'checked\')  }" id = "hideInnerLines" name = "hideInnerLines" value = "1" '.(!empty($hideInnerLines) ? 'checked = "checked"' : '').' />
+									</td>
+								</tr>
+								<tr class = "oddeven subtotalfoldable">
+									<td colspan = "5" class = "right">
+										<label for = "hidedetails">'.$langs->trans('SubTotalhidedetails').'</label>
+										<input type = "checkbox" id = "hidedetails" name = "hidedetails" value = "1" '.(!empty($hidedetails) ? 'checked = "checked"' : '').' />
+									</td>
+								</tr>
+								<tr class = "oddeven subtotalfoldable">
+									<td colspan = "5" class = "right">
+										<label for = "hideprices">'.$langs->trans('SubTotalhidePrice').'</label>
+										<input type = "checkbox" id = "hideprices" name = "hideprices" value = "1" '.(!empty($hideprices) ? 'checked = "checked"' : '').' />
+									</td>
+								</tr>';
 				if (
 					(in_array('propalcard',             $contextArray) && getDolGlobalString('SUBTOTAL_PROPAL_ADD_RECAP'))
 					|| (in_array('ordercard',           $contextArray) && getDolGlobalString('SUBTOTAL_COMMANDE_ADD_RECAP'))
@@ -529,22 +526,25 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 					|| (in_array('invoicereccard',      $contextArray) && getDolGlobalString('SUBTOTAL_INVOICE_ADD_RECAP'))
 				)
 				{
-					$out = '';	// InfraS change
-					$out.= '
-						<tr class="oddeven">
-							<td colspan="4" align="right">
-								<label for="subtotal_add_recap">'.$langs->trans('subtotal_add_recap').'</label>
-								<input type="checkbox" id="subtotal_add_recap" name="subtotal_add_recap" value="1" '.( GETPOST('subtotal_add_recap', 'none') ? 'checked="checked"' : '' ).' />
-							</td>
-						</tr>';
+					$out.= '	<tr class = "oddeven subtotalfoldable">
+									<td colspan = "5" class = "right">
+										<label for = "subtotal_add_recap">'.$langs->trans('subtotal_add_recap').'</label>
+										<input type = "checkbox" id = "subtotal_add_recap" name = "subtotal_add_recap" value = "1" '.(!empty(GETPOST('subtotal_add_recap', 'none')) ? 'checked = "checked"' : '').' />
+									</td>
+								</tr>';
 				}
-
-
+				$out.= '		<script type = "text/javascript">
+									$(document).ready(function(){
+										$(".subtotalfoldable").hide();
+									});
+									$(".subtotalfold").click(function (){
+										$(".subtotalfoldable").toggle();
+									});
+								</script>';
 				$this->resprints = $out;
 			}
-
-
-        return 1;
+        return 0;
+		// InfraS change end
 	}
 
     function formEditProductOptions($parameters, &$object, &$action, $hookmanager)
@@ -796,19 +796,13 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 			foreach($Tab as $line) {
                 $result = 0;
 				// InfraS add begin
-				if ($conf->global->MAIN_MODULE_OUVRAGE)
-				{
-					dol_include_once('/ouvrage/core/modules/modouvrage.class.php');
-					$objMod	= class_exists('modouvrage') ? new modouvrage($db) : '';
-					if ($line->product_type == 9 && $line->special_code == $objMod->numero)
-					{
-						// Call trigger
-						include_once DOL_DOCUMENT_ROOT.'/core/class/interfaces.class.php';
-						$interface			= new Interfaces($db);
-						$result				= $interface->run_triggers('OUVRAGE_DELETE', $line, $user, $langs, $conf);
-						if ($result < 0)	$error++;
-						// End call triggers
-					}
+				if (!empty(isModEnabled('ouvrage')) && Ouvrage::isOuvrage($line)) {
+					// Call trigger
+					include_once DOL_DOCUMENT_ROOT.'/core/class/interfaces.class.php';
+					$interface			= new Interfaces($db);
+					$result				= $interface->run_triggers('OUVRAGE_DELETE', $line, $user, $langs, $conf);
+					if ($result < 0)	$error++;
+					// End call triggers
 				}
 				// InfraS add end
 				$idLine = $line->id;
@@ -1039,8 +1033,6 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 	function getTotalLineFromObject(&$object, &$line, $use_level=false, $return_all=0) {
 		global $conf, $db;	// InfraS change
 
-		if ($conf->global->MAIN_MODULE_OUVRAGE)	dol_include_once('/ouvrage/core/modules/modouvrage.class.php');	// InfraS add
-
 		$rang = $line->rang;
 		$qty_line = $line->qty;
 		$lvl = 0;
@@ -1069,13 +1061,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 		{
 			$l->total_ttc = doubleval($l->total_ttc);
 			$l->total_ht = doubleval($l->total_ht);
-        	// InfraS add begin
-        	if (class_exists('modouvrage'))
-            {
-            	$objMod	= new modouvrage($db);
-            	$isOuvrage	= $l->product_type == 9 && !empty($objMod->numero) && $l->special_code == $objMod->numero ? true : '';
-            }
-        	// InfraS add end
+			$isOuvrage	= !empty(isModEnabled('ouvrage')) && Ouvrage::isOuvrage($l) ? 1 : 0;	// InfraS add
 
 			//print $l->rang.'>='.$rang.' '.$total.'<br/>';
             if ($l->rang>=$rang) continue;
@@ -2718,8 +2704,9 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 		}
  		if($object->element=='facture')$idvar = 'facid';
         else $idvar='id';
+		$isOuvrage	= !empty(isModEnabled('ouvrage')) && Ouvrage::isOuvrage($line) ? 1 : 0;	// InfraS add
 		if($line->special_code!=$this->module_number || $line->product_type!=9) {
-			if ($object->statut == 0  && $createRight && getDolGlobalString('SUBTOTAL_ALLOW_DUPLICATE_LINE') && $object->element !== 'invoice_supplier')
+			if ($object->statut == 0  && $createRight && getDolGlobalString('SUBTOTAL_ALLOW_DUPLICATE_LINE') && $object->element !== 'invoice_supplier' && empty($isOuvrage))	// InfraS change
             {
                 if(empty($line->fk_prev_id)) $line->fk_prev_id = null;
                 if(!(TSubtotal::isModSubtotalLine($line)) && ( $line->fk_prev_id === null ) && !($action == "editline" && GETPOST('lineid', 'int') == $line->id)) {
