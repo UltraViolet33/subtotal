@@ -343,7 +343,7 @@ class Interfacesubtotaltrigger extends DolibarrTriggers
 
 		}
 
-		if ($action == 'LINEBILL_UPDATE' || 'LINEBILL_MODIFY')
+		if ($action == 'LINEBILL_UPDATE' || $action == 'LINEBILL_MODIFY')
 		{
 			if (GETPOST('all_progress', 'none') && TSubtotal::isModSubtotalLine($object))
 			{
