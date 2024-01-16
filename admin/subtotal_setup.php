@@ -183,13 +183,13 @@ $formSetup->newItem('DISPLAY_MARGIN_ON_SUBTOTALS')->setAsYesNo();
 
 // Couleur de fond utilisée sur les PDF pour les titres
 $item = $formSetup->newItem('SUBTOTAL_TITLE_BACKGROUNDCOLOR');
-$item->fieldValue = (empty($conf->global->SUBTOTAL_TITLE_BACKGROUNDCOLOR)?'#ffffff':$conf->global->SUBTOTAL_TITLE_BACKGROUNDCOLOR);
+$item->fieldValue = getDolGlobalString('SUBTOTAL_TITLE_BACKGROUNDCOLOR','#ffffff');
 $item->fieldAttr['type'] = 'color';
 $item->fieldOutputOverride ='<input type="color" value="'.$item->fieldValue .'" disabled />';
 
 // Couleur de fond utilisée sur les PDF pour les sous-totaux
 $item = $formSetup->newItem('SUBTOTAL_SUBTOTAL_BACKGROUNDCOLOR');
-$item->fieldValue = (empty($conf->global->SUBTOTAL_SUBTOTAL_BACKGROUNDCOLOR)?'#ebebeb':$conf->global->SUBTOTAL_SUBTOTAL_BACKGROUNDCOLOR);
+$item->fieldValue = getDolGlobalString('SUBTOTAL_SUBTOTAL_BACKGROUNDCOLOR','#ebebeb');
 $item->fieldAttr['type'] = 'color';
 $item->fieldOutputOverride ='<input type="color" value="'.$item->fieldValue .'" disabled />';
 
@@ -201,13 +201,13 @@ $item = $formSetup->newItem('SUBTOTAL_BLOC_FOLD_MODE')->setAsSelect(array(
 		'default' => $langs->trans('HideSubtitleOnFold'),
 		'keepTitle' => $langs->trans('KeepSubtitleDisplayOnFold'),
 	));
-if(empty($conf->global->SUBTOTAL_BLOC_FOLD_MODE)){
+if(!getDolGlobalInt('SUBTOTAL_BLOC_FOLD_MODE')){
 	$result = dolibarr_set_const($item->db, $item->confKey, 'default', 'chaine', 0, '', $item->entity);
 	$item->reloadValueFromConf();	// InfraS change
 }
 
 
-if (!$conf->global->MAIN_MODULE_INFRASPACKPLUS) {	// InfraS add
+if (!getDolGlobalInt('MAIN_MODULE_INFRASPACKPLUS')) {	// InfraS add
 
 // Activer la gestion des blocs "Non Compris" pour exclusion du total
 $formSetup->newItem('ManageNonCompris')->setAsTitle();
@@ -326,7 +326,7 @@ if(!in_array($action, array('edit', 'update')) || (float)DOL_VERSION < 17) {
 
 	// Afficher la quantité sur les lignes de produit
 	$formSetup->newItem('SUBTOTAL_IF_HIDE_PRICES_SHOW_QTY')->setAsYesNo();
-	if (!$conf->global->MAIN_MODULE_INFRASPACKPLUS) {	// InfraS add
+	if (!getDolGlobalInt('MAIN_MODULE_INFRASPACKPLUS')) {	// InfraS add
 	// Masquer les totaux
 	$formSetup->newItem('SUBTOTAL_HIDE_DOCUMENT_TOTAL')->setAsYesNo();
 	}	// InfraS add
@@ -351,7 +351,7 @@ if(!in_array($action, array('edit', 'update')) || (float)DOL_VERSION < 17) {
 
 
 if(!in_array($action, array('edit', 'update')) || (float)DOL_VERSION < 17) {
-	if (!$conf->global->MAIN_MODULE_INFRASPACKPLUS) {	// InfraS add
+	if (!getDolGlobalInt('MAIN_MODULE_INFRASPACKPLUS')) {	// InfraS add
 	$formSetup->newItem('SubtotalExperimentalZone')->setAsTitle();
 
 
@@ -366,6 +366,7 @@ if(!in_array($action, array('edit', 'update')) || (float)DOL_VERSION < 17) {
 	$item->nameText = $langs->trans("SUBTOTAL_REPLACE_WITH_VAT_IF_HIDE_INNERLINES", $langs->transnoentitiesnoconv('HideInnerLines'));
 	}	// InfraS add
 }
+
 
 
 

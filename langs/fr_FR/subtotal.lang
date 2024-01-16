@@ -134,10 +134,11 @@ SubtotalExperimentalZone = Configurations expérimentales ou dépréciées
 QuickSummary = Sommaire rapide
 SUBTOTAL_DISABLE_SUMMARY = Désactiver le menu "sommaire rapide" (apparaît dans le menu de gauche lorsque le document a des titres)
 
-Subtotal_HideAll=Cacher toutes les lignes
-Subtotal_ShowAll=Afficher toutes les lignes
+Subtotal_HideAll=Sous-total - Cacher toutes les lignes
+Subtotal_ShowAll=Sous-total - Afficher toutes les lignes
 Subtotal_Hide=Cacher les lignes
 Subtotal_Show=Afficher les lignes
+Subtotal_Options = <b>Options du module Sous-total pour l'impression</b>
 
 NumberOfHiddenLines = Nombre de lignes cachées
 Subtotal_ForceHideAll = Cacher toutes les lignes du bloc ainsi que les lignes des blocs de titre de niveau inférieur
