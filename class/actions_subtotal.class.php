@@ -2773,13 +2773,13 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 			if($object->element == 'supplier_proposal') (float) DOL_VERSION < 6.0 ? $colspan = 4 : $colspan = 3;
 
 			if(DOL_VERSION > 16.0 && empty(getDolGlobalString('MAIN_NO_INPUT_PRICE_WITH_TAX'))) $colspan++; // Ajout de la colonne PU TTC
+			elseif(!empty($inputalsopricewithtax))	 $colspan++;	// InfraS add
 
 			if($object->element == 'facturerec' ) $colspan = 5;
 
 			if(!empty($conf->multicurrency->enabled) && ((float) DOL_VERSION < 8.0 || $object->multicurrency_code != $conf->currency)) {
 				$colspan++; // Colonne PU Devise
 			}
-			if($inputalsopricewithtax)	 $colspan++;	// InfraS add
 			if($object->element == 'commande' && $object->statut < 3 && !empty($conf->shippableorder->enabled)) $colspan++;
 			$margins_hidden_by_module = empty($conf->affmarges->enabled) ? false : !($_SESSION['marginsdisplayed']);
 			if(!empty($conf->margin->enabled) && !$margins_hidden_by_module) $colspan++;
