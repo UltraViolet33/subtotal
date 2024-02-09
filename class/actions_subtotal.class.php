@@ -498,21 +498,21 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 				$titleOptions	= $langs->trans('Subtotal_Options').'&nbsp;&nbsp;&nbsp;'.img_picto($langs->trans('Setup'), 'setup', 'style="vertical-align: bottom; height: 20px;"');
 				$titleStyle		= 'background: transparent !important; background-color: rgba(148, 148, 148, .065) !important; cursor: pointer;';
 				$out = '';
-		     	$out.= '		<tr class = "subtotalfold" style = "'.$titleStyle.'"><td colspan = "5" align = "center" style = "font-size: 120%;">'.$titleOptions.'</td></tr>
+		     	$out.= '		<tr class = "subtotalfold" style = "'.$titleStyle.'"><td colspan = "6" align = "center" style = "font-size: 120%;">'.$titleOptions.'</td></tr>
 								<tr class = "oddeven subtotalfoldable">
-									<td colspan = "5" class = "right">
+									<td colspan = "6" class = "right">
 										<label for = "hideInnerLines">'.$langs->trans('HideInnerLines').'</label>
 										<input type = "checkbox" onclick="if($(this).is(\':checked\')) { $(\'#hidedetails\').prop(\'checked\', \'checked\')  }" id = "hideInnerLines" name = "hideInnerLines" value = "1" '.(!empty($hideInnerLines) ? 'checked = "checked"' : '').' />
 									</td>
 								</tr>
 								<tr class = "oddeven subtotalfoldable">
-									<td colspan = "5" class = "right">
+									<td colspan = "6" class = "right">
 										<label for = "hidedetails">'.$langs->trans('SubTotalhidedetails').'</label>
 										<input type = "checkbox" id = "hidedetails" name = "hidedetails" value = "1" '.(!empty($hidedetails) ? 'checked = "checked"' : '').' />
 									</td>
 								</tr>
 								<tr class = "oddeven subtotalfoldable">
-									<td colspan = "5" class = "right">
+									<td colspan = "6" class = "right">
 										<label for = "hideprices">'.$langs->trans('SubTotalhidePrice').'</label>
 										<input type = "checkbox" id = "hideprices" name = "hideprices" value = "1" '.(!empty($hideprices) ? 'checked = "checked"' : '').' />
 									</td>
@@ -527,7 +527,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 				)
 				{
 					$out.= '	<tr class = "oddeven subtotalfoldable">
-									<td colspan = "5" class = "right">
+									<td colspan = "6" class = "right">
 										<label for = "subtotal_add_recap">'.$langs->trans('subtotal_add_recap').'</label>
 										<input type = "checkbox" id = "subtotal_add_recap" name = "subtotal_add_recap" value = "1" '.(!empty(GETPOST('subtotal_add_recap', 'none')) ? 'checked = "checked"' : '').' />
 									</td>
