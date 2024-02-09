@@ -116,8 +116,8 @@ SUBTOTAL_LIST_OF_EXTRAFIELDS_COMMANDEDET = Champs complémentaires disponible su
 SUBTOTAL_LIST_OF_EXTRAFIELDS_FACTUREDET = Champs complémentaires disponible sur les titres dans les factures clients
 CONCAT_TITLE_LABEL_IN_SUBTOTAL_LABEL = Sur les lignes de sous total des PDF, ajouter le libellé du titre auquel cette dernière est rattaché.
 
-SubtotalSetup = Paramettre module sous total
-SubTotalSetupPage = Paramettre module sous total
+SubtotalSetup = Paramètre module sous total
+SubTotalSetupPage = Paramètre module sous total
 EXPERIMENTAL=EXPERIMENTAL
 ManageNonCompris = Gestion des "Non compris"
 SetupForExtrafields = Paramètres liés aux champs complémentaires
@@ -134,8 +134,8 @@ SubtotalExperimentalZone = Configurations expérimentales ou dépréciées
 QuickSummary = Sommaire rapide
 SUBTOTAL_DISABLE_SUMMARY = Désactiver le menu "sommaire rapide" (apparaît dans le menu de gauche lorsque le document a des titres)
 
-Subtotal_HideAll=Sous-total - Cacher toutes les lignes
-Subtotal_ShowAll=Sous-total - Afficher toutes les lignes
+Subtotal_HideAll=Cacher toutes les lignes
+Subtotal_ShowAll=Afficher toutes les lignes
 Subtotal_Hide=Cacher les lignes
 Subtotal_Show=Afficher les lignes
 Subtotal_Options = <b>Options du module Sous-total pour l'impression</b>
