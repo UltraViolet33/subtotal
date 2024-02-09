@@ -498,21 +498,21 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 				$titleOptions	= $langs->trans('Subtotal_Options').'&nbsp;&nbsp;&nbsp;'.img_picto($langs->trans('Setup'), 'setup', 'style="vertical-align: bottom; height: 20px;"');
 				$titleStyle		= 'background: transparent !important; background-color: rgba(148, 148, 148, .065) !important; cursor: pointer;';
 				$out = '';
-		     	$out.= '		<tr class = "subtotalfold" style = "'.$titleStyle.'"><td colspan = "5" align = "center" style = "font-size: 120%;">'.$titleOptions.'</td></tr>
+		     	$out.= '		<tr class = "subtotalfold" style = "'.$titleStyle.'"><td colspan = "6" align = "center" style = "font-size: 120%;">'.$titleOptions.'</td></tr>
 								<tr class = "oddeven subtotalfoldable">
-									<td colspan = "5" class = "right">
+									<td colspan = "6" class = "right">
 										<label for = "hideInnerLines">'.$langs->trans('HideInnerLines').'</label>
 										<input type = "checkbox" onclick="if($(this).is(\':checked\')) { $(\'#hidedetails\').prop(\'checked\', \'checked\')  }" id = "hideInnerLines" name = "hideInnerLines" value = "1" '.(!empty($hideInnerLines) ? 'checked = "checked"' : '').' />
 									</td>
 								</tr>
 								<tr class = "oddeven subtotalfoldable">
-									<td colspan = "5" class = "right">
+									<td colspan = "6" class = "right">
 										<label for = "hidedetails">'.$langs->trans('SubTotalhidedetails').'</label>
 										<input type = "checkbox" id = "hidedetails" name = "hidedetails" value = "1" '.(!empty($hidedetails) ? 'checked = "checked"' : '').' />
 									</td>
 								</tr>
 								<tr class = "oddeven subtotalfoldable">
-									<td colspan = "5" class = "right">
+									<td colspan = "6" class = "right">
 										<label for = "hideprices">'.$langs->trans('SubTotalhidePrice').'</label>
 										<input type = "checkbox" id = "hideprices" name = "hideprices" value = "1" '.(!empty($hideprices) ? 'checked = "checked"' : '').' />
 									</td>
@@ -527,7 +527,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 				)
 				{
 					$out.= '	<tr class = "oddeven subtotalfoldable">
-									<td colspan = "5" class = "right">
+									<td colspan = "6" class = "right">
 										<label for = "subtotal_add_recap">'.$langs->trans('subtotal_add_recap').'</label>
 										<input type = "checkbox" id = "subtotal_add_recap" name = "subtotal_add_recap" value = "1" '.(!empty(GETPOST('subtotal_add_recap', 'none')) ? 'checked = "checked"' : '').' />
 									</td>
@@ -760,17 +760,17 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 				global $hideprices;
 
 				$hideInnerLines = GETPOST('hideInnerLines', 'int');
-				if (empty($_SESSION[$sessname]) || !is_array($_SESSION[$sessname]) || !isset($_SESSION[$sessname][$object->id]) || !is_array($_SESSION[$sessname][$object->id]))
+				if (!array_key_exists($sessname, $_SESSION) || empty($_SESSION[$sessname]) || !is_array($_SESSION[$sessname]) || !isset($_SESSION[$sessname][$object->id]) || !is_array($_SESSION[$sessname][$object->id]))
                     $_SESSION[$sessname] = array($object->id => 0); // prevent old system
 				$_SESSION[$sessname][$object->id] = $hideInnerLines;
 
 				$hidedetails= GETPOST('hidedetails', 'int');
-				if (empty($_SESSION[$sessname]) || !is_array($_SESSION[$sessname2]) || !isset($_SESSION[$sessname2][$object->id]) || !is_array($_SESSION[$sessname2][$object->id]))
+				if (!array_key_exists($sessname, $_SESSION) || empty($_SESSION[$sessname]) || !is_array($_SESSION[$sessname2]) || !isset($_SESSION[$sessname2][$object->id]) || !is_array($_SESSION[$sessname2][$object->id]))
 					$_SESSION[$sessname2] = array($object->id => 0); // prevent old system
 				$_SESSION[$sessname2][$object->id] = $hidedetails;
 
 				$hideprices= GETPOST('hideprices', 'int');
-				if (empty($_SESSION[$sessname]) || !is_array($_SESSION[$sessname3]) || !isset($_SESSION[$sessname3][$object->id]) || !is_array($_SESSION[$sessname3][$object->id]))
+				if (!array_key_exists($sessname, $_SESSION) || empty($_SESSION[$sessname]) || !is_array($_SESSION[$sessname3]) || !isset($_SESSION[$sessname3][$object->id]) || !is_array($_SESSION[$sessname3][$object->id]))
 					$_SESSION[$sessname3] = array($object->id => 0); // prevent old system
 				$_SESSION[$sessname3][$object->id] = $hideprices;
 
@@ -1170,14 +1170,14 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 			// mais avant d'ajouter une exeption ici verifier si il ne faut pas plutôt effectuer un fix sur le PDF
 			// ex : les "Anciens PDF n'utilisent pas le padding pour les texts contrairement au "nouveaux PDF" c'est pourquoi les nouveaux PDF disposent d'un affichage mieux positionné
 
-			if(!empty($conf->global->SUBTOTAL_BACKGROUND_CELL_HEIGHT_OFFSET)){
-				$backgroundCellHeightOffset = doubleval($conf->global->SUBTOTAL_BACKGROUND_CELL_HEIGHT_OFFSET);
+			if(getDolGlobalString('SUBTOTAL_BACKGROUND_CELL_HEIGHT_OFFSET')){
+				$backgroundCellHeightOffset = doubleval(getDolGlobalString('SUBTOTAL_BACKGROUND_CELL_HEIGHT_OFFSET'));
 			}
-			if(!empty($conf->global->SUBTOTAL_BACKGROUND_CELL_POS_Y_OFFSET)){
-				$backgroundCellPosYOffset = doubleval($conf->global->SUBTOTAL_BACKGROUND_CELL_POS_Y_OFFSET);
+			if(getDolGlobalString('SUBTOTAL_BACKGROUND_CELL_POS_Y_OFFSET')){
+				$backgroundCellPosYOffset = doubleval(getDolGlobalString('SUBTOTAL_BACKGROUND_CELL_POS_Y_OFFSET'));
 			}
 
-			$backgroundColor = colorStringToArray($conf->global->SUBTOTAL_SUBTOTAL_BACKGROUNDCOLOR,array(233, 233, 233));
+			$backgroundColor = colorStringToArray(getDolGlobalString('SUBTOTAL_SUBTOTAL_BACKGROUNDCOLOR') ,array(233, 233, 233));
 
 			//background color
 			if (!colorIsLight(getDolGlobalString('SUBTOTAL_SUBTOTAL_BACKGROUNDCOLOR'))) {
@@ -1210,6 +1210,13 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 			}
 			if(isset($staticPdfModel->cols['totalexcltax']['content']['padding'][2])){
 				$subtotalDefaultBottomPadding = $staticPdfModel->cols['totalexcltax']['content']['padding'][0];
+			}
+
+			if(isset($staticPdfModel->cols['totalincltax']['content']['padding'][0])){
+				$subtotalDefaultTopPadding = $staticPdfModel->cols['totalincltax']['content']['padding'][0];
+			}
+			if(isset($staticPdfModel->cols['totalincltax']['content']['padding'][2])){
+				$subtotalDefaultBottomPadding = $staticPdfModel->cols['totalincltax']['content']['padding'][0];
 			}
 		}
 
@@ -1341,6 +1348,10 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 
 			if($pdfModelUseColSystem){
 				$staticPdfModel->printStdColumnContent($pdf, $posy, 'totalexcltax', $total_to_print);
+				if(!empty($conf->global->PDF_PROPAL_SHOW_PRICE_INCL_TAX))
+				{
+					$staticPdfModel->printStdColumnContent($pdf, $posy, 'totalincltax', price($line->total_ttc,0,'',1,0,getDolGlobalInt('MAIN_MAX_DECIMALS_TOT')));
+				}
 			}
 			else{
 				$pdf->MultiCell($pdf->page_largeur-$pdf->marge_droite-$pdf->postotalht, 3, $total_to_print, 0, 'R', 0);
@@ -1373,7 +1384,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 	 */
 	function pdf_add_title(&$pdf,&$object, &$line, $label, $description,$posx, $posy, $w, $h) {
 
-		global $db,$conf,$subtotal_last_title_posy;
+		global $db,$conf,$subtotal_last_title_posy, $hidedesc;
 
 		empty($pdf->page_largeur) ? $pdf->page_largeur = 0 : '';
 		empty($pdf->marge_droite) ? $pdf->marge_droite = 0 : '';
@@ -1448,7 +1459,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 
 
 		$posYBeforeDesc = $pdf->GetY();
-		if($description && !$hidedesc) {
+		if($description && !($hidedesc??0)) {
 			$pdf->setColor('text', 0,0,0);
 			$pdf->SetFont('', '', $size_title-1);
 			$pdf->writeHTMLCell($w, $h, $posx, $posYBeforeDesc+1, $description, 0, 1, $fillDescBloc, true, 'J',true);
@@ -3045,7 +3056,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 						 {
 							if(TSubtotal::isTitle($line) || TSubtotal::isSubtotal($line))
 							{
-								echo str_repeat('&nbsp;&nbsp;&nbsp;', $line->qty-1);
+								echo str_repeat('&nbsp;&nbsp;&nbsp;', max(floatval($line->qty) - 1, 0));
 
 								if (TSubtotal::isTitle($line)) print img_picto('', 'subtotal@subtotal').'<span style="font-size:9px;margin-left:-3px;">'.$line->qty.'</span>&nbsp;&nbsp;';
 								else print img_picto('', 'subtotal2@subtotal').'<span style="font-size:9px;margin-left:-1px;">'.(100-$line->qty).'</span>&nbsp;&nbsp;';
@@ -3360,7 +3371,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 						 {
 							if(TSubtotal::isTitle($line) || TSubtotal::isSubtotal($line))
 							{
-								echo str_repeat('&nbsp;&nbsp;&nbsp;', $line->qty-1);
+								echo str_repeat('&nbsp;&nbsp;&nbsp;', max(floatval($line->qty) - 1, 0));
 
 								if (TSubtotal::isTitle($line)) print img_picto('', 'subtotal@subtotal').'<span style="font-size:9px;margin-left:-3px;">'.$line->qty.'</span>&nbsp;&nbsp;';
 								else print img_picto('', 'subtotal2@subtotal').'<span style="font-size:9px;margin-left:-1px;">'.(100-$line->qty).'</span>&nbsp;&nbsp;';
@@ -3493,7 +3504,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 			{
 				if(TSubtotal::isTitle($line) || TSubtotal::isSubtotal($line))
 				{
-					echo str_repeat('&nbsp;&nbsp;&nbsp;', $line->qty-1);
+					echo str_repeat('&nbsp;&nbsp;&nbsp;', max(floatval($line->qty) - 1, 0));
 
 					if (TSubtotal::isTitle($line)) print img_picto('', 'subtotal@subtotal').'<span style="font-size:9px;margin-left:-3px;">'.$line->qty.'</span>&nbsp;&nbsp;';
 					else print img_picto('', 'subtotal2@subtotal').'<span style="font-size:9px;margin-left:-1px;">'.(100-$line->qty).'</span>&nbsp;&nbsp;';
@@ -3640,7 +3651,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 				{
 					if(TSubtotal::isTitle($line) || TSubtotal::isSubtotal($line))
 					{
-						$object->tpl["sublabel"] = str_repeat('&nbsp;&nbsp;&nbsp;', $line->qty-1);
+						$object->tpl["sublabel"] = str_repeat('&nbsp;&nbsp;&nbsp;', max(floatval($line->qty) - 1, 0));
 
 						if (TSubtotal::isTitle($line)) $object->tpl["sublabel"].= img_picto('', 'subtotal@subtotal').'<span style="font-size:9px;margin-left:-3px;">'.$line->qty.'</span>&nbsp;&nbsp;';
 						else $object->tpl["sublabel"].= img_picto('', 'subtotal2@subtotal').'<span style="font-size:9px;margin-left:-1px;">'.(100-$line->qty).'</span>&nbsp;&nbsp;';
@@ -3706,7 +3717,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
     }
 
 	function addMoreActionsButtons($parameters, &$object, &$action, $hookmanager) {
-		global $conf,$langs;
+		global $langs, $db;
 
 		if ($object->statut == 0 && getDolGlobalString('SUBTOTAL_MANAGE_COMPRIS_NONCOMPRIS') && $action != 'editline')
 		{
@@ -3726,7 +3737,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 			$TSubNc = array();
 			foreach ($object->lines as &$l)
 			{
-				$TSubNc[$l->id] = (int) $l->array_options['options_subtotal_nc'];
+				$TSubNc[$l->id] = (int) ($l->array_options['options_subtotal_nc']??0);
 			}
 
 			print '<script type="text/javascript" src="'.dol_buildpath('subtotal/js/subtotal.lib.js', 1).'"></script>';
