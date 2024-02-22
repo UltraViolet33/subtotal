@@ -1057,6 +1057,20 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 
 		$TLineReverse = array_reverse($object->lines);
 
+		// InfraS add begin
+		$listOuvrages	= array();
+		if (!empty(isModEnabled('ouvrage'))) {
+			// first loop to record all ouvrages
+			foreach($TLineReverse as $l) {
+				$isOuvrage	= Ouvrage::isOuvrage($l) ? 1 : 0;	// ouvrage ??
+				if (!empty($title_break) && $title_break->id == $l->id) break;	// We go back from the end to the beginning, so when we find the associated title we stop
+				elseif (!empty($isOuvrage)) {	// it's a ouvrage
+					$listOuvrages[$l->id]	= $l->qty;	// record the quantity linked to the ID
+				}
+			}
+		}
+		// InfraS add end
+
 		foreach($TLineReverse as $l)
 		{
 			$l->total_ttc = doubleval($l->total_ttc);
@@ -1068,6 +1082,8 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
             if (!empty($title_break) && $title_break->id == $l->id) break;
             elseif (!TSubtotal::isModSubtotalLine($l) && empty($isOuvrage))	// InfraS change
             {
+				$totalQty	= !empty($listOuvrages) && !empty($l->fk_parent_line) && array_key_exists($l->fk_parent_line, $listOuvrages) ? $listOuvrages[$l->fk_parent_line] : 1;	// InfraS add
+
                 // TODO retirer le test avec $builddoc quand Dolibarr affichera le total progression sur la card et pas seulement dans le PDF
                 if ($builddoc && $object->element == 'facture' && $object->type==Facture::TYPE_SITUATION)
                 {
@@ -1082,20 +1098,20 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
                             $progress = ($l->situation_percent - $prev_progress) / 100;
                         }
 
-                        $result = $sign * ($l->total_ht / ($l->situation_percent / 100)) * $progress;
+                        $result = ($sign * ($l->total_ht / ($l->situation_percent / 100)) * $progress) * $totalQty;	// InfraS change
                         $total+= $result;
                         // TODO check si les 3 lignes du dessous sont corrects
-                        if ($l->situation_percent != 0)	$total_tva += $sign * ($l->total_tva / ($l->situation_percent / 100)) * $progress;	// InfraS change
-                        if ($l->situation_percent != 0)	$TTotal_tva[$l->tva_tx] += $sign * ($l->total_tva / ($l->situation_percent / 100)) * $progress;	// InfraS change
-                        if ($l->total_ttc != 0)	$total_ttc += $sign * ($l->total_tva / ($l->total_ttc / 100)) * $progress;	// InfraS change
+                        if ($l->situation_percent != 0)	$total_tva += ($sign * ($l->total_tva / ($l->situation_percent / 100)) * $progress) * $totalQty;	// InfraS change
+                        if ($l->situation_percent != 0)	$TTotal_tva[$l->tva_tx] += ($sign * ($l->total_tva / ($l->situation_percent / 100)) * $progress) * $totalQty;	// InfraS change
+                        if ($l->total_ttc != 0)	$total_ttc += ($sign * ($l->total_tva / ($l->total_ttc / 100)) * $progress) * $totalQty;	// InfraS change
 
                     }
 					else {	// InfraS add begin
 						if ($l->product_type != 9) {
-										$total += $l->total_ht;
-										$total_tva += $l->total_tva;
-										$TTotal_tva[$l->tva_tx] += $l->total_tva;
-										$total_ttc += $l->total_ttc;
+										$total += $l->total_ht * $totalQty;	// InfraS change
+										$total_tva += $l->total_tva * $totalQty;	// InfraS change
+										$TTotal_tva[$l->tva_tx] += $l->total_tva * $totalQty;	// InfraS change
+										$total_ttc += $l->total_ttc * $totalQty;	// InfraS change
 						}
 					}
 					// InfraS add end
@@ -1103,15 +1119,15 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
                 else
                 {
 					if ($l->product_type != 9) {
-									$total += $l->total_ht;
-									$total_tva += $l->total_tva;
+									$total += $l->total_ht * $totalQty;	// InfraS change
+									$total_tva += $l->total_tva * $totalQty;	// InfraS change
 
 									if(! isset($TTotal_tva[$l->tva_tx])) {
 										$TTotal_tva[$l->tva_tx] = 0;
 									}
-									$TTotal_tva[$l->tva_tx] += $l->total_tva;
+									$TTotal_tva[$l->tva_tx] += $l->total_tva * $totalQty;	// InfraS change
 
-									$total_ttc += $l->total_ttc;
+									$total_ttc += $l->total_ttc * $totalQty;	// InfraS change
 									// InfraS add begin
 									$vatrate = (string) $l->tva_tx;
 									if (($l->info_bits & 0x01) == 0x01) {
