@@ -491,7 +491,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 			)
 	        {
 	            $hideInnerLines	= isset( $_SESSION['subtotal_hideInnerLines_'.$parameters['modulepart']][$object->id] ) ?  $_SESSION['subtotal_hideInnerLines_'.$parameters['modulepart']][$object->id] : 0;
-	            $hidedetails	= isset( $_SESSION['subtotal_hidedetails_'.$parameters['modulepart']][$object->id] ) ?  $_SESSION['subtotal_hidedetails_'.$parameters['modulepart']][$object->id] : 0;
+	            $hidesubdetails	= isset( $_SESSION['subtotal_hidesubdetails_'.$parameters['modulepart']][$object->id] ) ?  $_SESSION['subtotal_hidesubdetails_'.$parameters['modulepart']][$object->id] : 0;
 				$hidepricesDefaultConf = getDolGlobalString('SUBTOTAL_HIDE_PRICE_DEFAULT_CHECKED')?getDolGlobalString('SUBTOTAL_HIDE_PRICE_DEFAULT_CHECKED') :0;
 				$hideprices= isset( $_SESSION['subtotal_hideprices_'.$parameters['modulepart']][$object->id] ) ?  $_SESSION['subtotal_hideprices_'.$parameters['modulepart']][$object->id] : $hidepricesDefaultConf;
 				// InfraS change begin
@@ -502,13 +502,13 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 								<tr class = "oddeven subtotalfoldable">
 									<td colspan = "6" class = "right">
 										<label for = "hideInnerLines">'.$langs->trans('HideInnerLines').'</label>
-										<input type = "checkbox" onclick="if($(this).is(\':checked\')) { $(\'#hidedetails\').prop(\'checked\', \'checked\')  }" id = "hideInnerLines" name = "hideInnerLines" value = "1" '.(!empty($hideInnerLines) ? 'checked = "checked"' : '').' />
+										<input type = "checkbox" onclick="if($(this).is(\':checked\')) { $(\'#hidesubdetails\').prop(\'checked\', \'checked\')  }" id = "hideInnerLines" name = "hideInnerLines" value = "1" '.(!empty($hideInnerLines) ? 'checked = "checked"' : '').' />
 									</td>
 								</tr>
 								<tr class = "oddeven subtotalfoldable">
 									<td colspan = "6" class = "right">
-										<label for = "hidedetails">'.$langs->trans('SubTotalhidedetails').'</label>
-										<input type = "checkbox" id = "hidedetails" name = "hidedetails" value = "1" '.(!empty($hidedetails) ? 'checked = "checked"' : '').' />
+										<label for = "hidesubdetails">'.$langs->trans('SubTotalhidedetails').'</label>
+										<input type = "checkbox" id = "hidesubdetails" name = "hidesubdetails" value = "1" '.(!empty($hidesubdetails) ? 'checked = "checked"' : '').' />
 									</td>
 								</tr>
 								<tr class = "oddeven subtotalfoldable">
@@ -723,40 +723,41 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 	        {
 				if(in_array('invoicecard',$contextArray)) {
 					$sessname = 'subtotal_hideInnerLines_facture';
-					$sessname2 = 'subtotal_hidedetails_facture';
+					$sessname2 = 'subtotal_hidesubdetails_facture';
 					$sessname3 = 'subtotal_hideprices_facture';
 				}
 				elseif(in_array('invoicesuppliercard',$contextArray)) {
 				    $sessname = 'subtotal_hideInnerLines_facture_fournisseur';
-				    $sessname2 = 'subtotal_hidedetails_facture_fournisseur';
+				    $sessname2 = 'subtotal_hidesubdetails_facture_fournisseur';
 				    $sessname3 = 'subtotal_hideprices_facture_fournisseur';
 				}
 				elseif(in_array('propalcard',$contextArray)) {
 					$sessname = 'subtotal_hideInnerLines_propal';
-					$sessname2 = 'subtotal_hidedetails_propal';
+					$sessname2 = 'subtotal_hidesubdetails_propal';
 					$sessname3 = 'subtotal_hideprices_propal';
 				}
 				elseif(in_array('supplier_proposalcard',$contextArray)) {
 				    $sessname = 'subtotal_hideInnerLines_supplier_proposal';
-				    $sessname2 = 'subtotal_hidedetails_supplier_proposal';
+				    $sessname2 = 'subtotal_hidesubdetails_supplier_proposal';
 				    $sessname3 = 'subtotal_hideprices_supplier_proposal';
 				}
 				elseif(in_array('ordercard',$contextArray)) {
 					$sessname = 'subtotal_hideInnerLines_commande';
-					$sessname2 = 'subtotal_hidedetails_commande';
+					$sessname2 = 'subtotal_hidesubdetails_commande';
 					$sessname3 = 'subtotal_hideprices_commande';
 				}
 				elseif(in_array('ordersuppliercard',$contextArray)) {
 				    $sessname = 'subtotal_hideInnerLines_commande_fournisseur';
-				    $sessname2 = 'subtotal_hidedetails_commande_fournisseur';
+				    $sessname2 = 'subtotal_hidesubdetails_commande_fournisseur';
 				    $sessname3 = 'subtotal_hideprices_commande_fournisseur';
 				}
 				else {
 					$sessname = 'subtotal_hideInnerLines_unknown';
-					$sessname2 = 'subtotal_hidedetails_unknown';
+					$sessname2 = 'subtotal_hidesubdetails_unknown';
 					$sessname3 = 'subtotal_hideprices_unknown';
 				}
 
+				global $hidesubdetails; // same name as in global card (proposal, order, invoice, ...)
 				global $hideprices;
 
 				$hideInnerLines = GETPOST('hideInnerLines', 'int');
@@ -764,10 +765,10 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
                     $_SESSION[$sessname] = array($object->id => 0); // prevent old system
 				$_SESSION[$sessname][$object->id] = $hideInnerLines;
 
-				$hidedetails= GETPOST('hidedetails', 'int');
+				$hidesubdetails= GETPOST('hidesubdetails', 'int');
 				if (!array_key_exists($sessname, $_SESSION) || empty($_SESSION[$sessname]) || !is_array($_SESSION[$sessname2]) || !isset($_SESSION[$sessname2][$object->id]) || !is_array($_SESSION[$sessname2][$object->id]))
 					$_SESSION[$sessname2] = array($object->id => 0); // prevent old system
-				$_SESSION[$sessname2][$object->id] = $hidedetails;
+				$_SESSION[$sessname2][$object->id] = $hidesubdetails;
 
 				$hideprices= GETPOST('hideprices', 'int');
 				if (!array_key_exists($sessname, $_SESSION) || empty($_SESSION[$sessname]) || !is_array($_SESSION[$sessname3]) || !isset($_SESSION[$sessname3][$object->id]) || !is_array($_SESSION[$sessname3][$object->id]))
@@ -903,35 +904,35 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
                     ) {
                         if (in_array('invoicecard', $contextArray)) {
                             $sessname = 'subtotal_hideInnerLines_facture';
-                            $sessname2 = 'subtotal_hidedetails_facture';
+                            $sessname2 = 'subtotal_hidesubdetails_facture';
                             $sessname3 = 'subtotal_hideprices_facture';
                         } elseif (in_array('invoicesuppliercard', $contextArray)) {
                             $sessname = 'subtotal_hideInnerLines_facture_fournisseur';
-                            $sessname2 = 'subtotal_hidedetails_facture_fournisseur';
+                            $sessname2 = 'subtotal_hidesubdetails_facture_fournisseur';
                             $sessname3 = 'subtotal_hideprices_facture_fournisseur';
                         } elseif (in_array('propalcard', $contextArray)) {
                             $sessname = 'subtotal_hideInnerLines_propal';
-                            $sessname2 = 'subtotal_hidedetails_propal';
+                            $sessname2 = 'subtotal_hidesubdetails_propal';
                             $sessname3 = 'subtotal_hideprices_propal';
                         } elseif (in_array('supplier_proposalcard', $contextArray)) {
                             $sessname = 'subtotal_hideInnerLines_supplier_proposal';
-                            $sessname2 = 'subtotal_hidedetails_supplier_proposal';
+                            $sessname2 = 'subtotal_hidesubdetails_supplier_proposal';
                             $sessname3 = 'subtotal_hideprices_supplier_proposal';
                         } elseif (in_array('ordercard', $contextArray)) {
                             $sessname = 'subtotal_hideInnerLines_commande';
-                            $sessname2 = 'subtotal_hidedetails_commande';
+                            $sessname2 = 'subtotal_hidesubdetails_commande';
                             $sessname3 = 'subtotal_hideprices_commande';
                         } elseif (in_array('ordersuppliercard', $contextArray)) {
                             $sessname = 'subtotal_hideInnerLines_commande_fournisseur';
-                            $sessname2 = 'subtotal_hidedetails_commande_fournisseur';
+                            $sessname2 = 'subtotal_hidesubdetails_commande_fournisseur';
                             $sessname3 = 'subtotal_hideprices_commande_fournisseur';
                         } else {
                             $sessname = 'subtotal_hideInnerLines_unknown';
-                            $sessname2 = 'subtotal_hidedetails_unknown';
+                            $sessname2 = 'subtotal_hidesubdetails_unknown';
                             $sessname3 = 'subtotal_hideprices_unknown';
                         }
 
-                        global $hidedetails; // same name as in global card (proposal, order, invoice, ...)
+                        global $hidesubdetails; // same name as in global card (proposal, order, invoice, ...)
                         global $hideprices; // used as global value in this module
 
                         if (GETPOSTISSET('hideInnerLines')) {
@@ -941,10 +942,10 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
                         }
                         $_POST['hideInnerLines'] = $hideInnerLines;
 
-                        if (GETPOSTISSET('hidedetails')) {
-                            $hidedetails = GETPOST('hidedetails', 'int');
+                        if (GETPOSTISSET('hidesubdetails')) {
+                            $hidesubdetails = GETPOST('hidesubdetails', 'int');
                         } else {
-                            $hidedetails = isset($_SESSION[$sessname2][$object->id]) ? $_SESSION[$sessname2][$object->id] : (getDolGlobalString('MAIN_GENERATE_DOCUMENTS_HIDE_DETAILS') ? 1 : 0);
+                            $hidesubdetails = isset($_SESSION[$sessname2][$object->id]) ? $_SESSION[$sessname2][$object->id] : (getDolGlobalString('MAIN_GENERATE_DOCUMENTS_HIDE_DETAILS') ? 1 : 0);
                         }
                         // no need to set POST value (it's a global value used in global card)
 
@@ -1543,7 +1544,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 	}
 
 	function pdf_getlineqty($parameters=array(), &$object, &$action='') {
-		global $conf,$hideprices;
+		global $conf, $hidesubdetails, $hideprices, $hookmanager;
 
         $i = intval($parameters['i']);
         $line = isset($object->lines[$i]);
@@ -1603,11 +1604,26 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
                 return 1;
             } elseif (getDolGlobalString('SUBTOTAL_IF_HIDE_PRICES_SHOW_QTY')) {
                 $hideInnerLines = GETPOST('hideInnerLines', 'int');
-                $hidedetails = GETPOST('hidedetails', 'int');
-                if (empty($hideInnerLines) && !empty($hidedetails)) {
+                //$hidesubdetails = GETPOST('hidesubdetails', 'int');
+                if (empty($hideInnerLines) && !empty($hidesubdetails)) {
                     $this->resprints = $object->lines[$parameters['i']]->qty;
                 }
             }
+			// Cache la quantité pour les lignes standards dolibarr qui sont dans un ensemble
+			else if (!empty($hidesubdetails))
+			{
+				// Check if a title exist for this line && if the title have subtotal
+				$lineTitle = (!empty($object->lines[$i])) ? TSubtotal::getParentTitleOfLine($object, $object->lines[$i]->rang): '';
+				if ($lineTitle && TSubtotal::titleHasTotalLine($object, $lineTitle, true))
+				{
+
+					$this->resprints = ' ';
+
+					// currentcontext à modifier celon l'appel
+					$params = array('parameters' => $parameters, 'currentmethod' => 'pdf_getlineqty', 'currentcontext'=>'subtotal_hidesubdetails', 'i' => $i);
+					return $this->callHook($object, $hookmanager, $action, $params); // return 1 (qui est la valeur par défaut) OU -1 si erreur OU overrideReturn (contient -1 ou 0 ou 1)
+				}
+			}
         }
 
 		if(is_array($parameters)) $i = & $parameters['i'];
@@ -1631,7 +1647,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 	}
 
 	function pdf_getlinetotalexcltax($parameters=array(), &$object, &$action='') {
-	    global $conf, $hideprices, $hookmanager;
+	    global $conf, $hidesubdetails, $hideprices, $hookmanager;
 
 		if(is_array($parameters)) $i = & $parameters['i'];
 		else $i = (int)$parameters;
@@ -1725,7 +1741,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 			}
 		}
 		// Cache le prix pour les lignes standards dolibarr qui sont dans un ensemble
-		else if (!empty($hideprices))
+		else if (!empty($hideprices) || !empty($hidesubdetails))
 		{
 			// Check if a title exist for this line && if the title have subtotal
 			$lineTitle = (!empty($object->lines[$i])) ? TSubtotal::getParentTitleOfLine($object, $object->lines[$i]->rang): '';
@@ -1775,7 +1791,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 	}
 
 	function pdf_getlinetotalwithtax($parameters=array(), &$object, &$action='') {
-		global $conf, $hideprices, $hookmanager;
+		global $conf, $hidesubdetails, $hideprices, $hookmanager;
 
 		if(is_array($parameters)) $i = & $parameters['i'];
 		else $i = (int)$parameters;
@@ -1868,7 +1884,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 			}
 		}
 		// Cache le prix pour les lignes standards dolibarr qui sont dans un ensemble
-		else if (!empty($hideprices))
+		else if (!empty($hideprices) || !empty($hidesubdetails))
 		{
 			// Check if a title exist for this line && if the title have subtotal
 			$lineTitle = (!empty($object->lines[$i])) ? TSubtotal::getParentTitleOfLine($object, $object->lines[$i]->rang): '';
@@ -1916,7 +1932,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 	}
 
 	function pdf_getlineupexcltax($parameters=array(), &$object, &$action='') {
-	    global $conf,$hideprices,$hookmanager;
+	    global $conf, $hidesubdetails, $hideprices, $hookmanager;
 
 		if(is_array($parameters)) $i = & $parameters['i'];
 		else $i = (int)$parameters;
@@ -1963,7 +1979,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 		    }
 		}
 		// Cache le prix pour les lignes standards dolibarr qui sont dans un ensemble
-		else if (!empty($hideprices))
+		else if (!empty($hideprices) || !empty($hidesubdetails))
 		{
 
 		    // Check if a title exist for this line && if the title have subtotal
@@ -1983,7 +1999,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 	}
 
 	function pdf_getlineremisepercent($parameters=array(), &$object, &$action='') {
-	    global $conf,$hideprices,$hookmanager;
+	    global $conf, $hidesubdetails, $hideprices, $hookmanager;
 
         if(is_array($parameters)) $i = & $parameters['i'];
         else $i = (int) $parameters;
@@ -2012,7 +2028,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 				return 1;
 			}
 		}
-		elseif (!empty($hideprices)
+		elseif (!empty($hideprices) || !empty($hidesubdetails)
 		        || (getDolGlobalString('SUBTOTAL_MANAGE_COMPRIS_NONCOMPRIS') && (!empty($object->lines[$i]->array_options['options_subtotal_nc']) || TSubtotal::hasNcTitle($object->lines[$i])) )
 		        )
 		    {
@@ -2031,7 +2047,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 	}
 
 	function pdf_getlineupwithtax($parameters=array(), &$object, &$action='') {
-		global $conf,$hideprices;
+		global $conf, $hidesubdetails, $hideprices;
 
 		if($this->isModSubtotalLine($parameters,$object) ){
 			$this->resprints = ' ';
@@ -2046,7 +2062,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 		if(is_array($parameters)) $i = & $parameters['i'];
 		else $i = (int)$parameters;
 
-		if (!empty($hideprices)
+		if (!empty($hideprices) || !empty($hidesubdetails)
 				|| (getDolGlobalString('SUBTOTAL_MANAGE_COMPRIS_NONCOMPRIS') && (!empty($object->lines[$i]->array_options['options_subtotal_nc']) || TSubtotal::hasNcTitle($object->lines[$i])) )
 		)
 		{
@@ -2061,7 +2077,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 	}
 
 	function pdf_getlinevatrate($parameters=array(), &$object, &$action='') {
-	    global $conf,$hideprices,$hookmanager;
+	    global $conf, $hidesubdetails, $hideprices, $hookmanager;
 
 //		// Dans le cas des notes de frais report ne pas traiter
 //		// TODO : peut être faire l'inverse : limiter à certains elements plutot que le faire pour tous ... à voir si un autre PB du genre apparait.
@@ -2101,7 +2117,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 		    }
 		}
 		// Cache le prix pour les lignes standards dolibarr qui sont dans un ensemble
-		else if (!empty($hideprices))
+		else if (!empty($hideprices) || !empty($hidesubdetails))
 		{
 
 		    // Check if a title exist for this line && if the title have subtotal
@@ -2266,9 +2282,9 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 
 	function setDocTVA(&$pdf, &$object) {
 
-		$hidedetails = GETPOST('hidedetails', 'int');
+		$hidesubdetails = GETPOST('hidesubdetails', 'int');
 
-		if(empty($hidedetails)) return false;
+		if(empty($hidesubdetails)) return false;
 
 		// TODO can't add VAT to document without lines... :-/
 
@@ -2331,9 +2347,9 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 			}
 
 			$hideInnerLines = GETPOST('hideInnerLines', 'int');
-			$hidedetails = GETPOST('hidedetails', 'int');
+			$hidesubdetails = GETPOST('hidesubdetails', 'int');
 
-			if ($hideInnerLines) { // si c une ligne de titre
+			if (!empty($hideInnerLines)) { // si c une ligne de titre
 				$fk_parent_line=0;
 				$TLines =array();
 
@@ -2433,14 +2449,17 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 
 
 					}
-					elseif ($hidedetails)
+					elseif (!empty($hidesubdetails))
 					{
 						$TLines[] = $line; //Cas où je cache uniquement les prix des produits
 					}
 
 					if ($line->product_type != 9) { // jusqu'au prochain titre ou total
-						//$line->fk_parent_line = $fk_parent_line;
-
+						// Check if a title exist for this line && if the title have subtotal
+						$lineTitle = !empty($line) ? TSubtotal::getParentTitleOfLine($object, $line->rang): '';
+						if (empty($lineTitle) || empty(TSubtotal::titleHasTotalLine($object, $lineTitle, true))) {
+							$TLines[] = $line;	// ligne standard en dehors de tout titre + sous-total
+						}
 					}
 
 					/*if($hideTotal) {
@@ -2452,7 +2471,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 
 				// cas incongru où il y aurait des produits en dessous du dernier sous-total
 				$nbtva = count($TTvas);
-				if(!empty($nbtva) && $hideInnerLines && getDolGlobalString('SUBTOTAL_REPLACE_WITH_VAT_IF_HIDE_INNERLINES'))
+				if(!empty($nbtva) && !empty($hideInnerLines) && getDolGlobalString('SUBTOTAL_REPLACE_WITH_VAT_IF_HIDE_INNERLINES'))
 				{
 					foreach ($TTvas as $tx =>$val){
 						$l = clone $line;
@@ -2503,12 +2522,12 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 		$w = $parameters['w'];
 
 		$hideInnerLines = GETPOST('hideInnerLines', 'int');
-		$hidedetails = GETPOST('hidedetails', 'int');
+		$hidesubdetails = GETPOST('hidesubdetails', 'int');
 
 		if($this->isModSubtotalLine($parameters,$object) ){
 
-				global $hideprices;
-				if(!empty($hideprices)) {
+				global $hidesubdetails, $hideprices;
+				if(!empty($hideprices) || !empty($hidesubdetails)) {
 					foreach($object->lines as &$line) {
 						if($line->fk_product_type!=9) $line->fk_parent_line = -1;
 					}
