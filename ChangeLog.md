@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 
 # Release 3.23 - 18/12/2023
 
+- FIX : Display subtotal with tax when global PDF_PROPAL_SHOW_PRICE_INCL_TAX is enable - *15/01/2024* - 3.23.5
+- FIX : php 8.2 warning - *15/01/2024* - 3.23.4
 - FIX : colum in card if global 'MAIN_NO_INPUT_PRICE_WITH_TAX' is enable
 - FIX : js error when summary menu is disabled - *06/10/2023* - 3.23.2
 - FIX : css break due to incompatible conf - *06/10/2023* - 3.23.1
@@ -19,6 +21,7 @@ Changed Dolibarr compatibility range to 15 min - 19 max
 
 # Release 3.22 - 19/07/2023
 
+- FIX : DA024364 - Fatal error deuxieme parametre de str_repeat - *19/01/2024* - 3.22.7
 - FIX : DA024159 - Suppression des ligne sous total hors bloc expédié dans le bon d'expédition - *13/12/2023* - 3.22.6
 - HOTFIX : must be greater than 0 fatal - *22/11/2023* - 3.22.5
 - FIX : DA024057 - Anomalie PDF lors de l'activation conf "Remplacer par le détail des TVA si l'option "Cacher le détail des ensembles" est utilisée (expérimental)" - *16/11/2023* - 3.22.4
