@@ -1641,7 +1641,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 			// InfraS add begin
 			if (!empty($parameters['infrasplus'])) {
 				$hidePriceOnSubtotalLines = $object->element == 'shipping' || $object->element == 'delivery' ? 1 : GETPOST('hide_price_on_subtotal_lines', 'int');
-				if (!$hidePriceOnSubtotalLines) {
+				if (empty($hidePriceOnSubtotalLines)) {
 					$total_to_print = price($object->lines[$i]->total);
 					if (!empty($conf->global->SUBTOTAL_MANAGE_COMPRIS_NONCOMPRIS)) {
 						$TTitle = TSubtotal::getAllTitleFromLine($object->lines[$i]);
@@ -1775,16 +1775,17 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 	}
 
 	function pdf_getlinetotalwithtax($parameters=array(), &$object, &$action='') {
-		global $conf;
+		global $conf, $hideprices, $hookmanager;
+
+		if(is_array($parameters)) $i = & $parameters['i'];
+		else $i = (int)$parameters;
 
 		if($this->isModSubtotalLine($parameters,$object) ){
 
 			// InfraS add begin
 			if (!empty($parameters['infrasplus'])) {
-				if(is_array($parameters)) $i = & $parameters['i'];
-				else $i = (int)$parameters;
 				$hidePriceOnSubtotalLines = $object->element == 'shipping' || $object->element == 'delivery' ? 1 : GETPOST('hide_price_on_subtotal_lines', 'int');
-				if (!$hidePriceOnSubtotalLines) {
+				if (empty($hidePriceOnSubtotalLines)) {
 					$total_to_print = price($object->lines[$i]->total_ttc);
 					if (!empty($conf->global->SUBTOTAL_MANAGE_COMPRIS_NONCOMPRIS)) {
 						$TTitle = TSubtotal::getAllTitleFromLine($object->lines[$i]);
@@ -1824,16 +1825,61 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 				return 1;
 			}
 		}
-
-		if(is_array($parameters)) $i = & $parameters['i'];
-		else $i = (int)$parameters;
-
-		if (getDolGlobalString('SUBTOTAL_MANAGE_COMPRIS_NONCOMPRIS') && (!empty($object->lines[$i]->array_options['options_subtotal_nc']) || TSubtotal::hasNcTitle($object->lines[$i])) )
+		elseif (getDolGlobalString('SUBTOTAL_MANAGE_COMPRIS_NONCOMPRIS'))
 		{
-			if (!in_array(__FUNCTION__, explode(',', getDolGlobalString('SUBTOTAL_TFIELD_TO_KEEP_WITH_NC'))))
+			if (!in_array(__FUNCTION__, explode(',', getDolGlobalString('SUBTOTAL_TFIELD_TO_KEEP_WITH_NC') )))
+			{
+				if (!empty($object->lines[$i]->array_options['options_subtotal_nc']))
+				{
+					$this->resprints = ' ';
+					return 1;
+				}
+
+				$TTitle = TSubtotal::getAllTitleFromLine($object->lines[$i]);
+				foreach ($TTitle as &$line_title)
+				{
+					if (!empty($line_title->array_options['options_subtotal_nc']))
+					{
+						$this->resprints = ' ';
+						return 1;
+					}
+				}
+			}
+		}
+        // If commenté car : Affichage du total HT des lignes produit en doublon TICKET DA024057
+//		if (GETPOST('hideInnerLines', 'int') && !empty(getDolGlobalString('SUBTOTAL_REPLACE_WITH_VAT_IF_HIDE_INNERLINES'))){
+//		    $this->resprints = price($object->lines[$i]->total_ht,0,'',1,0,getDolGlobalString('MAIN_MAX_DECIMALS_TOT'));
+//		}
+
+		// Si la gestion C/NC est active et que je suis sur un ligne dont l'extrafield est coché
+		if (
+			getDolGlobalString('SUBTOTAL_MANAGE_COMPRIS_NONCOMPRIS') &&
+			(!empty($object->lines[$i]->array_options['options_subtotal_nc']) || TSubtotal::hasNcTitle($object->lines[$i]))
+		)
+		{
+			// alors je dois vérifier si la méthode fait partie de la conf qui l'exclue
+			if (!in_array(__FUNCTION__, explode(',',  getDolGlobalString('SUBTOTAL_TFIELD_TO_KEEP_WITH_NC'))))
 			{
 				$this->resprints = ' ';
-				return 1;
+
+				// currentcontext à modifier celon l'appel
+				$params = array('parameters' => $parameters, 'currentmethod' => 'pdf_getlinetotalwithtax', 'currentcontext'=>'subtotal_hide_nc', 'i' => $i);
+				return $this->callHook($object, $hookmanager, $action, $params); // return 1 (qui est la valeur par défaut) OU -1 si erreur OU overrideReturn (contient -1 ou 0 ou 1)
+			}
+		}
+		// Cache le prix pour les lignes standards dolibarr qui sont dans un ensemble
+		else if (!empty($hideprices))
+		{
+			// Check if a title exist for this line && if the title have subtotal
+			$lineTitle = (!empty($object->lines[$i])) ? TSubtotal::getParentTitleOfLine($object, $object->lines[$i]->rang): '';
+			if ($lineTitle && TSubtotal::titleHasTotalLine($object, $lineTitle, true))
+			{
+
+				$this->resprints = ' ';
+
+				// currentcontext à modifier celon l'appel
+				$params = array('parameters' => $parameters, 'currentmethod' => 'pdf_getlinetotalwithtax', 'currentcontext'=>'subtotal_hideprices', 'i' => $i);
+				return $this->callHook($object, $hookmanager, $action, $params); // return 1 (qui est la valeur par défaut) OU -1 si erreur OU overrideReturn (contient -1 ou 0 ou 1)
 			}
 		}
 
