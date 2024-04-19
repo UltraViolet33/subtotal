@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 
 
 
+# Release 3.24 - 08/04/2024
+
+- FIX : Title extrafields wasn't working - *12/04/2024* - 3.24.2  
+- FIX : doublon affichage label description lors de la création de facture depuis un objet (propal/commande ...)  - *03/04/2024* - 3.24.1  
+- NEW : Ajout des quantités par sous totaux sur l'interface - *27/03/2024* - 3.24.0
+
 # Release 3.23 - 18/12/2023
 - FIX : DA024587 - Les totaux remisés sur le PDF Sponge sont erronés  - *20/03/2024* - 3.23.9
 - FIX : Suite a l'issue #379, la création de facture d'acompte avec un montant variable change les qté des lignes générées par le module donc on utilise un trigger pour remettre les bonnes qtés - *18/03/2024* - 3.23.8

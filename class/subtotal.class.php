@@ -90,11 +90,14 @@ class TSubtotal {
 
 
 	/**
+	 *
+	 * n'est pas appelé lors de la  de facture depuis un object (propal/command)
 	 * @param CommonObject $object
 	 * @param string       $label
 	 * @param int          $qty
 	 * @param int          $rang
 	 * @return int
+	 *
 	 */
 	static function addSubTotalLine(&$object, $label, $qty, $rang=-1) {
 
@@ -119,7 +122,7 @@ class TSubtotal {
 			$desc = '';
 
 			$TNotElements = array ('invoice_supplier', 'order_supplier');
-			if ((float) DOL_VERSION < 6  || $qty==50 && !in_array($object->element, $TNotElements) ) {
+			if ((float) DOL_VERSION < 6  || $qty==50 && !in_array($object->element, $TNotElements)) {
 				$desc = $label;
 				$label = '';
 			}
@@ -545,7 +548,7 @@ class TSubtotal {
 	 */
 	public static function isTitle(&$line, $level=-1)
 	{
-		$res = $line->special_code == self::$module_number && $line->product_type == 9 && $line->qty <= 9;
+		$res = !empty($line->special_code) && $line->special_code == self::$module_number && $line->product_type == 9 && $line->qty <= 9;
 		if($res && $level > -1) {
 			return $line->qty == $level;
 		} else return $res;
@@ -559,7 +562,7 @@ class TSubtotal {
 	 */
 	public static function isSubtotal(&$line, $level=-1)
 	{
-	    $res = $line->special_code == self::$module_number && $line->product_type == 9 && $line->qty >= 90;
+	    $res = !empty($line->special_code) && $line->special_code == self::$module_number && $line->product_type == 9 && $line->qty >= 90;
 	    if($res && $level > -1) {
 	        return self::getNiveau($line) == $level;
 	    } else return $res;
@@ -571,7 +574,7 @@ class TSubtotal {
 	 */
 	public static function isFreeText(&$line)
 	{
-		return $line->special_code == self::$module_number && $line->product_type == 9 && $line->qty == 50;
+		return !empty($line->special_code) && $line->special_code == self::$module_number && $line->product_type == 9 && $line->qty == 50;
 	}
 
 	/**
@@ -853,7 +856,7 @@ class TSubtotal {
 
 			case 'order_supplier':
 			    $object->special_code = SELF::$module_number;
-			    if (empty($desc)) $desc = $label;
+			    if (empty($desc) ) $desc = $label;
 			    $res = $object->updateline($rowid, $desc, $pu, $qty, $remise_percent, $txtva, $txlocaltax1, $txlocaltax2, $price_base_type, $info_bits, $type, 0, $date_start, $date_end, $array_options, $fk_unit);
 			    break;
 
