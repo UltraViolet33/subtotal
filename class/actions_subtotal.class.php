@@ -4200,9 +4200,13 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 	 */
 	public function defineColumnField($parameters, &$pdfDoc, &$action, $hookmanager)
 	{
-
-		// If this model is column field compatible it will add info to change subtotal behavior
-		$parameters['object']->context['subtotalPdfModelInfo']->cols = $pdfDoc->cols;
+		if (property_exists($parameters['object'], 'context')
+			&& is_array($parameters['object']->context)
+			&& isset($parameters['object']->context['subtotalPdfModelInfo'])
+			&& is_object($parameters['object']->context['subtotalPdfModelInfo'])
+		) {
+			// If this model is column field compatible it will add info to change subtotal behavior
+			$parameters['object']->context['subtotalPdfModelInfo']->cols = $pdfDoc->cols;
 
 			$parameters['object']->context['subtotalPdfModelInfo']->cols = $pdfDoc->cols;
 			// HACK Pour passer les paramettres du model dans les hooks sans infos
@@ -4212,9 +4216,10 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 			$parameters['object']->context['subtotalPdfModelInfo']->page_hauteur 	= $pdfDoc->page_hauteur;
 			$parameters['object']->context['subtotalPdfModelInfo']->format 		= $pdfDoc->format;
 		    if (property_exists($pdfDoc, 'context') && is_object($pdfDoc->context['subtotalPdfModelInfo'])) {
-                $parameters['object']->context['subtotalPdfModelInfo']->defaultTitlesFieldsStyle = $pdfDoc->context['subtotalPdfModelInfo']->defaultTitlesFieldsStyle;
+				$parameters['object']->context['subtotalPdfModelInfo']->defaultTitlesFieldsStyle = $pdfDoc->context['subtotalPdfModelInfo']->defaultTitlesFieldsStyle;
                 $parameters['object']->context['subtotalPdfModelInfo']->defaultContentsFieldsStyle = $pdfDoc->context['subtotalPdfModelInfo']->defaultContentsFieldsStyle;
 		    }
+		}
 		return 0;
 	}
 
