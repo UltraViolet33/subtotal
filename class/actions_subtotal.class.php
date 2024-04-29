@@ -1084,8 +1084,9 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
             if (!empty($title_break) && $title_break->id == $l->id) break;
             elseif (!TSubtotal::isModSubtotalLine($l) && empty($isOuvrage))	// InfraS change
             {
-				$totalQty	= !empty($listOuvrages) && !empty($l->fk_parent_line) && array_key_exists($l->fk_parent_line, $listOuvrages) ? $listOuvrages[$l->fk_parent_line] : $totalQty + $l->qty;	// InfraS change
-                // TODO retirer le test avec $builddoc quand Dolibarr affichera le total progression sur la card et pas seulement dans le PDF
+				$totalQty	= !empty($listOuvrages) && !empty($l->fk_parent_line) && array_key_exists($l->fk_parent_line, $listOuvrages) ? $listOuvrages[$l->fk_parent_line] : 1;	// InfraS change
+				$total_qty += $l->qty;
+               // TODO retirer le test avec $builddoc quand Dolibarr affichera le total progression sur la card et pas seulement dans le PDF
                 if ($builddoc && $object->element == 'facture' && $object->type==Facture::TYPE_SITUATION)
                 {
 					$sitFacTotLineAvt	= isset($conf->global->INFRASPLUS_PDF_SITFAC_TOTLINE_AVT) ? $conf->global->INFRASPLUS_PDF_SITFAC_TOTLINE_AVT : 0;	// InfraS add
@@ -1145,7 +1146,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
             }
 		}
 		if (!$return_all) return $total;
-		else return array($total, $total_tva, $total_ttc, $TTotal_tva, $totalQty, $TTotal_tva_array);	// InfraS change
+		else return array($total, $total_tva, $total_ttc, $TTotal_tva, $total_qty, $TTotal_tva_array);	// InfraS change
 	}
 
 	/**
