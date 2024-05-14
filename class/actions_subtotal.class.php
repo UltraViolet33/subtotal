@@ -1105,7 +1105,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
                         // TODO check si les 3 lignes du dessous sont corrects
                         if ($l->situation_percent != 0)	$total_tva += ($sign * ($l->total_tva / ($l->situation_percent / 100)) * $progress) * $totalQty;	// InfraS change
                         if ($l->situation_percent != 0)	$TTotal_tva[$l->tva_tx] += ($sign * ($l->total_tva / ($l->situation_percent / 100)) * $progress) * $totalQty;	// InfraS change
-                        if ($l->total_ttc != 0)	$total_ttc += ($sign * ($l->total_tva / ($l->total_ttc / 100)) * $progress) * $totalQty;	// InfraS change
+                        if ($l->total_ttc != 0)	$total_ttc += ($sign * ($l->total_ttc / ($l->situation_percent / 100)) * $progress) * $totalQty;	// InfraS change
 
                     }
 					else {	// InfraS add begin
