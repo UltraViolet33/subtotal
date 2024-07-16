@@ -2292,7 +2292,7 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 		$TContext	= explode(':', $parameters['context']);	// InfraS add
 		if (in_array('propalcard', $TContext) || in_array('ordercard', $TContext) || in_array('invoicecard', $TContext) || in_array('supplier_proposalcard', $TContext) || in_array('ordersuppliercard', $TContext) || in_array('invoicesuppliercard', $TContext)) {	// InfraS add
 			// for compatibility dolibarr < 15
-			if(!empty($object->context)){ $object->context = array(); }
+			if(!isset($object->context)){ $object->context = array(); }
 			$object->context['subtotalPdfModelInfo'] = new stdClass(); // see defineColumnFiel method in this class
 			$object->context['subtotalPdfModelInfo']->cols = false;
 			$object->context['subtotalTransactionLine'] = array();
