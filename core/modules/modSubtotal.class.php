@@ -71,7 +71,6 @@ class modSubtotal extends DolibarrModules
 
         $this->version = '3.24.28';
 
-
 		// Url to the file with your last numberversion of this module
 		require_once __DIR__ . '/../../class/techatm.class.php';
 		$this->url_last_version	= $this->editor_web.'jdownloads/Technique/Modules%20Dolibarr/Changelogs/'.$this->name.'/'.$this->name.'.txt';
