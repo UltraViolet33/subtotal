@@ -8,9 +8,7 @@ require_once __DIR__ . '/../backport/v19/core/class/commonhookactions.class.php'
 if (!empty(isModEnabled('ouvrage'))) {
 	dol_include_once('/ouvrage/class/ouvrage.class.php');	// InfraS add
 	dol_include_once('/ouvrage/modules/modOuvrage.class.php');	// Easya add
-}	
-	
-
+}
 
 class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 {
@@ -1122,7 +1120,6 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 
 		$TLineReverse = array_reverse($object->lines);
 
-
 		// Easya add for inovea ouvrage compat 
 		$ouvrageMod = false;
 		$inoveaFamily = "Inovea Conseil";
@@ -1131,7 +1128,6 @@ class ActionsSubtotal extends \subtotal\RetroCompatCommonHookActions
 		$listOuvrages	= array();
 		if (!empty(isModEnabled('ouvrage'))) {
 			$ouvrageMod = new modOuvrage($this->db);
-
 			// first loop to record all ouvrages
 			foreach($TLineReverse as $l) {
 				$isOuvrage	= Ouvrage::isOuvrage($l) ? 1 : 0;	// ouvrage ??
